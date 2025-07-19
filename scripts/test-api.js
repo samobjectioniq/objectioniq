@@ -6,7 +6,7 @@ const http = require('http');
 const BASE_URL = process.env.TEST_URL || 'http://localhost:3000';
 
 // Override API key for testing
-process.env.ANTHROPIC_API_KEY = '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';
+process.env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || 'your-api-key-here';
 
 // Test data
 const testPersona = {

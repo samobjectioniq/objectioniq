@@ -17,7 +17,7 @@ if (!fs.existsSync(envPath)) {
 let envContent = fs.readFileSync(envPath, 'utf8');
 
 // Update Anthropic API key
-const newApiKey = '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';
+const newApiKey = process.env.ANTHROPIC_API_KEY || 'your-api-key-here';
 
 // Replace the API key
 if (envContent.includes('ANTHROPIC_API_KEY=')) {
