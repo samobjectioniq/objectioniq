@@ -212,3 +212,4 @@ For support or questions, please open an issue on GitHub or contact the developm
 **ObjectionIQ** - Transform your insurance sales skills with AI-powered voice training.
 # Force new deployment
 # Force new deployment - Sat Jul 19 13:28:27 PDT 2025
+# Force redeploy with re-enabled API key - Sat Jul 19 14:07:25 PDT 2025
