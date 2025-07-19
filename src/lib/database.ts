@@ -15,7 +15,14 @@ type UserPreferencesUpdate = Database['public']['Tables']['user_preferences']['U
 
 type PerformanceMetrics = Database['public']['Tables']['performance_metrics']['Row'];
 
-const supabase = createClientComponentClient();
+// Get Supabase client with error handling
+const getSupabaseClient = () => {
+  const client = createClientComponentClient();
+  if (!client) {
+    throw new Error('Supabase client not available - check environment variables');
+  }
+  return client;
+};
 
 // Session operations
 export const sessionService = {
@@ -27,6 +34,8 @@ export const sessionService = {
     dateFrom?: string;
     dateTo?: string;
   }) {
+    const supabase = getSupabaseClient();
+    
     let query = supabase
       .from('sessions')
       .select('*')
@@ -59,6 +68,8 @@ export const sessionService = {
 
   // Get a single session
   async getSession(sessionId: string) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('sessions')
       .select('*')
@@ -69,6 +80,8 @@ export const sessionService = {
 
   // Create a new session
   async createSession(session: SessionInsert) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('sessions')
       .insert(session)
@@ -79,6 +92,8 @@ export const sessionService = {
 
   // Update a session
   async updateSession(sessionId: string, updates: SessionUpdate) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('sessions')
       .update(updates)
@@ -90,6 +105,8 @@ export const sessionService = {
 
   // Delete a session
   async deleteSession(sessionId: string) {
+    const supabase = getSupabaseClient();
+    
     const { error } = await supabase
       .from('sessions')
       .delete()
@@ -99,6 +116,8 @@ export const sessionService = {
 
   // Get session statistics
   async getSessionStats(userId: string) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('sessions')
       .select('duration, objections_handled, confidence_score')
@@ -129,6 +148,8 @@ export const sessionService = {
 export const goalService = {
   // Get all goals for a user
   async getGoals(userId: string) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('goals')
       .select('*')
@@ -139,6 +160,8 @@ export const goalService = {
 
   // Get a single goal
   async getGoal(goalId: string) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('goals')
       .select('*')
@@ -149,6 +172,8 @@ export const goalService = {
 
   // Create a new goal
   async createGoal(goal: GoalInsert) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('goals')
       .insert(goal)
@@ -159,6 +184,8 @@ export const goalService = {
 
   // Update a goal
   async updateGoal(goalId: string, updates: GoalUpdate) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('goals')
       .update(updates)
@@ -170,6 +197,8 @@ export const goalService = {
 
   // Delete a goal
   async deleteGoal(goalId: string) {
+    const supabase = getSupabaseClient();
+    
     const { error } = await supabase
       .from('goals')
       .delete()
@@ -179,6 +208,8 @@ export const goalService = {
 
   // Update goal progress
   async updateGoalProgress(goalId: string, currentValue: number) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('goals')
       .update({ current_value: currentValue })
@@ -193,6 +224,8 @@ export const goalService = {
 export const userPreferencesService = {
   // Get user preferences
   async getUserPreferences(userId: string) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('user_preferences')
       .select('*')
@@ -203,6 +236,8 @@ export const userPreferencesService = {
 
   // Create user preferences
   async createUserPreferences(preferences: UserPreferencesInsert) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('user_preferences')
       .insert(preferences)
@@ -213,6 +248,8 @@ export const userPreferencesService = {
 
   // Update user preferences
   async updateUserPreferences(userId: string, updates: UserPreferencesUpdate) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('user_preferences')
       .update(updates)
@@ -231,6 +268,8 @@ export const performanceMetricsService = {
     startDate?: string;
     endDate?: string;
   }) {
+    const supabase = getSupabaseClient();
+    
     let query = supabase
       .from('performance_metrics')
       .select('*')
@@ -257,6 +296,8 @@ export const performanceMetricsService = {
 
   // Get aggregated performance metrics
   async getAggregatedMetrics(userId: string) {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('performance_metrics')
       .select('*')

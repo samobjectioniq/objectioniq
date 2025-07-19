@@ -7,7 +7,8 @@ export const createSupabaseClient = () => {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase configuration missing');
+    console.warn('Supabase configuration missing - returning null');
+    return null;
   }
   
   return createClient(supabaseUrl, supabaseAnonKey, {
@@ -24,7 +25,8 @@ export const createClientComponentClient = () => {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase configuration missing');
+    console.warn('Supabase configuration missing - returning null');
+    return null;
   }
   
   return createBrowserClient(supabaseUrl, supabaseAnonKey);
@@ -36,7 +38,8 @@ export const createServerComponentClient = () => {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase configuration missing');
+    console.warn('Supabase configuration missing - returning null');
+    return null;
   }
   
   return createBrowserClient(supabaseUrl, supabaseAnonKey);

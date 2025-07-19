@@ -38,9 +38,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClientComponentClient();
 
   useEffect(() => {
+    // Create Supabase client inside useEffect to avoid build-time errors
+    const supabase = createClientComponentClient();
+    if (!supabase) {
+      console.warn('Supabase client not available - authentication disabled');
+      setLoading(false);
+      return;
+    }
+
     // Get initial session
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -52,6 +59,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       setLoading(false);
+    };
+
+    const fetchProfile = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+
+        setProfile(data);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
     };
 
     getInitialSession();
@@ -75,26 +101,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return;
-      }
-
-      setProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  };
-
   const signIn = async (email: string, password: string) => {
+    const supabase = createClientComponentClient();
+    if (!supabase) {
+      return { error: new Error('Supabase client not available') };
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -103,6 +115,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
+    const supabase = createClientComponentClient();
+    if (!supabase) {
+      return { error: new Error('Supabase client not available') };
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -116,11 +133,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const supabase = createClientComponentClient();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return { error: new Error('No user logged in') };
+
+    const supabase = createClientComponentClient();
+    if (!supabase) {
+      return { error: new Error('Supabase client not available') };
+    }
 
     const { data, error } = await supabase
       .from('profiles')
@@ -138,7 +163,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = async () => {
     if (user) {
-      await fetchProfile(user.id);
+      const supabase = createClientComponentClient();
+      if (supabase) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching profile:', error);
+            return;
+          }
+
+          setProfile(data);
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+        }
+      }
     }
   };
 
