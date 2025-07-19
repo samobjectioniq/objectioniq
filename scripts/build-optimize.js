@@ -30,8 +30,10 @@ if (!fs.existsSync(buildDir)) {
 
 // Check bundle sizes
 const staticDir = path.join(buildDir, 'static');
+let jsFiles = [];
+
 if (fs.existsSync(staticDir)) {
-  const jsFiles = fs.readdirSync(staticDir)
+  jsFiles = fs.readdirSync(staticDir)
     .filter(file => file.endsWith('.js'))
     .map(file => {
       const filePath = path.join(staticDir, file);
