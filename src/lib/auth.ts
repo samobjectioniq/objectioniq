@@ -1,16 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest } from 'next/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-// Service role client for server-side operations
-const supabaseAdmin = createClient(supabaseUrl || '', supabaseServiceKey || '', {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
+// Create admin client for server-side operations
+function createSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase configuration missing');
   }
-});
+  
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+}
 
 export interface AuthenticatedUser {
   id: string;
@@ -22,6 +28,9 @@ export interface AuthenticatedUser {
 export async function getAuthenticatedUser(request: NextRequest): Promise<AuthenticatedUser | null> {
   try {
     // Check if Supabase is properly configured
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
     if (!supabaseUrl || !supabaseServiceKey) {
       console.log('Supabase not configured, using mock user');
       return null;
@@ -36,6 +45,9 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
     if (!token) {
       return null;
     }
+
+    // Create Supabase admin client
+    const supabaseAdmin = createSupabaseAdmin();
 
     // Verify the JWT token with Supabase
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
