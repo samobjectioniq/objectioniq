@@ -18,7 +18,8 @@
     "postbuild": "node scripts/build-optimize.js",
     "setup": "node scripts/setup-env.js",
     "troubleshoot": "node scripts/troubleshoot.js",
-    "test:api": "node scripts/test-api.js"
+    "test:api": "node scripts/test-api.js",
+    "test:claude": "node scripts/test-claude-api.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.56.0",
