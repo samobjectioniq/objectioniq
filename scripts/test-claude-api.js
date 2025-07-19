@@ -6,7 +6,7 @@ const http = require('http');
 console.log('🧪 Testing Claude API Integration...\n');
 
 // Configuration
-const BASE_URL = process.env.TEST_URL || 'https://objectioniq-k8vw-oeio72bfx-sam-barnes-projects-87580908.vercel.app';
+const BASE_URL = process.env.TEST_URL || 'https://objectioniq-ks1s3v7zz-sam-barnes-projects-87580908.vercel.app';
 const API_ENDPOINT = '/api/chat';
 
 // Test personas
