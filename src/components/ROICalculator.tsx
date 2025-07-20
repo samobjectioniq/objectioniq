@@ -12,10 +12,10 @@ interface ROIData {
 
 export default function ROICalculator() {
   const [roiData, setRoiData] = useState<ROIData>({
-    monthlyLeads: 100,
-    leadCost: 4.50,
-    currentConversion: 15,
-    improvedConversion: 25
+    monthlyLeads: 500,
+    leadCost: 10,
+    currentConversion: 5,
+    improvedConversion: 8
   });
 
   const [showResults, setShowResults] = useState(false);
@@ -32,8 +32,8 @@ export default function ROICalculator() {
     const currentSales = roiData.monthlyLeads * (roiData.currentConversion / 100);
     const improvedSales = roiData.monthlyLeads * (roiData.improvedConversion / 100);
     
-    const currentRevenue = currentSales * 500; // Average commission per sale
-    const improvedRevenue = improvedSales * 500;
+    const currentRevenue = currentSales * 300; // Average commission per P&C sale
+    const improvedRevenue = improvedSales * 300;
     
     const revenueIncrease = improvedRevenue - currentRevenue;
     const costPerSaleCurrent = monthlySpend / currentSales;
@@ -80,7 +80,7 @@ export default function ROICalculator() {
             {/* Monthly Leads */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Monthly Lead Volume
+                Monthly Internet Leads
               </label>
               <div className="relative">
                 <input
@@ -88,7 +88,9 @@ export default function ROICalculator() {
                   value={roiData.monthlyLeads}
                   onChange={(e) => handleInputChange('monthlyLeads', Number(e.target.value))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white"
-                  placeholder="100"
+                  placeholder="500"
+                  min="300"
+                  max="1000"
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                   leads/month
@@ -99,7 +101,7 @@ export default function ROICalculator() {
             {/* Lead Cost */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cost Per Lead
+                Cost Per Internet Lead
               </label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -111,7 +113,9 @@ export default function ROICalculator() {
                   value={roiData.leadCost}
                   onChange={(e) => handleInputChange('leadCost', Number(e.target.value))}
                   className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white"
-                  placeholder="4.50"
+                  placeholder="10.00"
+                  min="5"
+                  max="20"
                 />
               </div>
             </div>
@@ -119,7 +123,7 @@ export default function ROICalculator() {
             {/* Current Conversion Rate */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Current Conversion Rate
+                Current Close Rate (Industry Average)
               </label>
               <div className="relative">
                 <input
@@ -128,7 +132,9 @@ export default function ROICalculator() {
                   value={roiData.currentConversion}
                   onChange={(e) => handleInputChange('currentConversion', Number(e.target.value))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white"
-                  placeholder="15"
+                  placeholder="5"
+                  min="3"
+                  max="8"
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                   %
@@ -139,7 +145,7 @@ export default function ROICalculator() {
             {/* Improved Conversion Rate */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Improved Conversion Rate (with ObjectionIQ)
+                Improved Close Rate (Top Performers)
               </label>
               <div className="relative">
                 <input
@@ -148,7 +154,9 @@ export default function ROICalculator() {
                   value={roiData.improvedConversion}
                   onChange={(e) => handleInputChange('improvedConversion', Number(e.target.value))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white"
-                  placeholder="25"
+                  placeholder="8"
+                  min="6"
+                  max="12"
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                   %
@@ -244,16 +252,19 @@ export default function ROICalculator() {
 
               {/* ROI Summary */}
               <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg p-6">
-                <h4 className="text-lg font-bold mb-2">Your ROI with ObjectionIQ</h4>
+                <h4 className="text-lg font-bold mb-2">Your Internet Lead ROI with ObjectionIQ</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <div className="text-green-100">Monthly Savings</div>
-                    <div className="text-xl font-bold">${results.monthlySavings.toFixed(0)}</div>
+                    <div className="text-green-100">Additional Sales</div>
+                    <div className="text-xl font-bold">+{results.savedLeads}</div>
                   </div>
                   <div>
-                    <div className="text-green-100">Annual Savings</div>
-                    <div className="text-xl font-bold">${(results.monthlySavings * 12).toFixed(0)}</div>
+                    <div className="text-green-100">Cost Per Sale</div>
+                    <div className="text-xl font-bold">${results.costPerSaleCurrent.toFixed(0)} → ${results.costPerSaleImproved.toFixed(0)}</div>
                   </div>
+                </div>
+                <div className="mt-4 text-center">
+                  <div className="text-green-100 text-sm">If ObjectionIQ helps you improve from {roiData.currentConversion}% to {roiData.improvedConversion}% close rate, that&apos;s {Math.round(((roiData.improvedConversion - roiData.currentConversion) / roiData.currentConversion) * 100)}% more sales = ${results.revenueIncrease.toLocaleString()} additional commission monthly</div>
                 </div>
               </div>
 
@@ -288,24 +299,24 @@ export default function ROICalculator() {
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <AlertTriangle className="w-6 h-6 text-red-600" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">85%</div>
-          <div className="text-sm text-gray-600">of leads are wasted on bad conversations</div>
+          <div className="text-2xl font-bold text-gray-900">75%</div>
+          <div className="text-sm text-gray-600">of internet leads don&apos;t answer the phone</div>
         </div>
         
         <div className="bg-white rounded-xl shadow-lg p-6 text-center border border-gray-200">
           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <TrendingUp className="w-6 h-6 text-green-600" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">3x</div>
-          <div className="text-sm text-gray-600">better conversion with proper objection handling</div>
+          <div className="text-2xl font-bold text-gray-900">5% → 8%</div>
+          <div className="text-sm text-gray-600">average to top performer close rate</div>
         </div>
         
         <div className="bg-white rounded-xl shadow-lg p-6 text-center border border-gray-200">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <DollarSign className="w-6 h-6 text-blue-600" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">$2,250</div>
-          <div className="text-sm text-gray-600">average monthly savings for agents</div>
+          <div className="text-2xl font-bold text-gray-900">$750 → $500</div>
+          <div className="text-sm text-gray-600">cost per sale improvement</div>
         </div>
       </div>
     </div>
