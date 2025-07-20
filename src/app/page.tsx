@@ -168,7 +168,7 @@ export default function Home() {
               Calculate Your Lead Investment ROI
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              See how much money you're losing on bad conversations and how ObjectionIQ can protect your investment
+              See how much money you&apos;re losing on bad conversations and how ObjectionIQ can protect your investment
             </p>
           </div>
           <ROICalculator />
@@ -407,7 +407,7 @@ export default function Home() {
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center">
             <p className="text-gray-400 text-sm">
-              © 2025 ObjectionIQ. All rights reserved. Protecting insurance agents' lead investments with AI-powered training.
+              © 2025 ObjectionIQ. All rights reserved. Protecting insurance agents&apos; lead investments with AI-powered training.
             </p>
           </div>
         </div>

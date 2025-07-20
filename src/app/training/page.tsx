@@ -263,11 +263,11 @@ export default function TrainingPage() {
               <div className="grid md:grid-cols-3 gap-4">
                 <button className="bg-white/20 hover:bg-white/30 text-white p-4 rounded-lg transition-colors text-left">
                   <div className="font-medium">Price Objections</div>
-                  <div className="text-sm text-blue-100">Master "too expensive" responses</div>
+                  <div className="text-sm text-blue-100">Master &quot;too expensive&quot; responses</div>
                 </button>
                 <button className="bg-white/20 hover:bg-white/30 text-white p-4 rounded-lg transition-colors text-left">
                   <div className="font-medium">Time Objections</div>
-                  <div className="text-sm text-blue-100">Handle "I'm busy" scenarios</div>
+                  <div className="text-sm text-blue-100">Handle &quot;I&apos;m busy&quot; scenarios</div>
                 </button>
                 <button className="bg-white/20 hover:bg-white/30 text-white p-4 rounded-lg transition-colors text-left">
                   <div className="font-medium">Appointment Setting</div>
