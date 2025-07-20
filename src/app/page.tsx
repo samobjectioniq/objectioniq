@@ -290,7 +290,7 @@ export default function Home() {
               AI-Powered Insurance Sales Training Platform
             </p>
             <p className="text-gray-500 text-sm">
-              © 2024 ObjectionIQ. All rights reserved.
+              © 2025 ObjectionIQ. All rights reserved.
             </p>
           </div>
         </div>
