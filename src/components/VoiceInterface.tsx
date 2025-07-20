@@ -89,6 +89,42 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
     }
   }, []);
 
+  // Start listening
+  const startListening = useCallback(() => {
+    if (recognitionRef.current && callState.isConnected && !callState.isSpeaking) {
+      try {
+        recognitionRef.current.start();
+      } catch (error) {
+        console.error('Error starting speech recognition:', error);
+      }
+    }
+  }, [callState.isConnected, callState.isSpeaking]);
+
+  // Stop listening
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  }, []);
+
+  const handleAgentResponse = async (transcript: string) => {
+    const agentMessage: ConversationMessage = {
+      id: Date.now().toString(),
+      speaker: 'agent',
+      content: transcript,
+      timestamp: new Date()
+    };
+
+    setConversation(prev => [...prev, agentMessage]);
+    setSessionStats(prev => ({
+      ...prev,
+      responsesCount: prev.responsesCount + 1
+    }));
+
+    // Generate AI customer response
+    await generateCustomerResponse(transcript);
+  };
+
   // Initialize speech recognition
   const initializeSpeechRecognition = useCallback(() => {
     const SpeechRecognition = getSpeechRecognition();
@@ -152,7 +188,7 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
         }, 1000);
       }
     };
-  }, [callState.isConnected, callState.isSpeaking]);
+  }, [callState.isConnected, callState.isSpeaking, handleAgentResponse, startListening]);
 
   // Initialize audio analysis for voice activity detection
   const initializeAudioAnalysis = useCallback(async () => {
@@ -212,24 +248,6 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
     
     return selectedVoice;
   }, [persona.id]);
-
-  // Start listening
-  const startListening = useCallback(() => {
-    if (recognitionRef.current && callState.isConnected && !callState.isSpeaking) {
-      try {
-        recognitionRef.current.start();
-      } catch (error) {
-        console.error('Error starting speech recognition:', error);
-      }
-    }
-  }, [callState.isConnected, callState.isSpeaking]);
-
-  // Stop listening
-  const stopListening = useCallback(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-  }, []);
 
   // Speak text (make AI customer speak)
   const speakText = useCallback((text: string) => {
@@ -416,24 +434,6 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
       onConversationUpdate(conversation);
     }
   }, [conversation, onConversationUpdate]);
-
-  const handleAgentResponse = async (transcript: string) => {
-    const agentMessage: ConversationMessage = {
-      id: Date.now().toString(),
-      speaker: 'agent',
-      content: transcript,
-      timestamp: new Date()
-    };
-
-    setConversation(prev => [...prev, agentMessage]);
-    setSessionStats(prev => ({
-      ...prev,
-      responsesCount: prev.responsesCount + 1
-    }));
-
-    // Generate AI customer response
-    await generateCustomerResponse(transcript);
-  };
 
   const generateCustomerResponse = async (agentResponse: string) => {
     setIsLoading(true);

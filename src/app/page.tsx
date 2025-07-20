@@ -323,7 +323,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Sarah Mitchell</h3>
                 <p className="text-sm text-gray-600">Marketing Manager, 32</p>
-                <p className="text-blue-600 font-medium text-sm mt-1">"I'm just comparing quotes"</p>
+                <p className="text-blue-600 font-medium text-sm mt-1">&quot;I&apos;m just comparing quotes&quot;</p>
               </div>
               <div className="space-y-2">
                 <p className="text-gray-600 text-sm">
@@ -343,7 +343,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Robert Chen</h3>
                 <p className="text-sm text-gray-600">Small Business Owner, 45</p>
-                <p className="text-green-600 font-medium text-sm mt-1">"I already have insurance"</p>
+                <p className="text-green-600 font-medium text-sm mt-1">&quot;I already have insurance&quot;</p>
               </div>
               <div className="space-y-2">
                 <p className="text-gray-600 text-sm">
@@ -363,7 +363,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Linda Rodriguez</h3>
                 <p className="text-sm text-gray-600">Teacher, 28</p>
-                <p className="text-purple-600 font-medium text-sm mt-1">"I'm on a tight budget"</p>
+                <p className="text-purple-600 font-medium text-sm mt-1">&quot;I&apos;m on a tight budget&quot;</p>
               </div>
               <div className="space-y-2">
                 <p className="text-gray-600 text-sm">
@@ -383,7 +383,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">David Thompson</h3>
                 <p className="text-sm text-gray-600">Retired Engineer, 58</p>
-                <p className="text-orange-600 font-medium text-sm mt-1">"I've been with them 15 years"</p>
+                <p className="text-orange-600 font-medium text-sm mt-1">&quot;I&apos;ve been with them 15 years&quot;</p>
               </div>
               <div className="space-y-2">
                 <p className="text-gray-600 text-sm">
@@ -422,7 +422,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-gray-700 text-sm">
-                "The realistic practice scenarios helped me feel more confident handling price objections. My close rate improved from 4% to 6% in three months."
+                &quot;The realistic practice scenarios helped me feel more confident handling price objections. My close rate improved from 4% to 6% in three months.&quot;
               </p>
             </div>
             
@@ -437,7 +437,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-gray-700 text-sm">
-                "Great practice tool for new agents. The AI responses are realistic and help build confidence before calling actual prospects."
+                &quot;Great practice tool for new agents. The AI responses are realistic and help build confidence before calling actual prospects.&quot;
               </p>
             </div>
             
@@ -452,7 +452,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-gray-700 text-sm">
-                "The performance tracking helps me identify areas where my team needs improvement. It's become a regular part of our training routine."
+                &quot;The performance tracking helps me identify areas where my team needs improvement. It&apos;s become a regular part of our training routine.&quot;
               </p>
             </div>
           </div>
