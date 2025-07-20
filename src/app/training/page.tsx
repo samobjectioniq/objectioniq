@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, Clock, Target, DollarSign, Shield, Zap } from 'lucide-react';
+import { ArrowLeft, Clock, Target, DollarSign, Shield, Zap, Phone } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { sessionService } from '@/lib/database';
@@ -186,10 +186,23 @@ export default function TrainingPage() {
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
                 Practice Before You Dial
               </h2>
-              <p className="text-gray-600">
-                  Master real internet lead objections before you waste another $4.50 lead. 
-                  Choose a scenario to practice with AI customers that mirror your actual expensive leads.
+              <p className="text-gray-600 mb-6">
+                Master real internet lead objections before you waste another expensive lead. 
+                <span className="font-semibold text-blue-600"> Make voice calls to AI customers that mirror your actual expensive leads.</span>
+              </p>
+              
+              {/* Voice Call Emphasis */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 max-w-2xl mx-auto">
+                <div className="flex items-center gap-3 mb-2">
+                  <Phone className="w-5 h-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-900">Voice Call Training</h3>
+                </div>
+                <p className="text-blue-800 text-sm">
+                  Click "Start Call" to initiate a real phone conversation with AI customers. 
+                  Speak naturally as if you're calling an actual internet lead. 
+                  The AI will respond with realistic objections and objections.
                 </p>
+              </div>
             </div>
 
             {/* Quick Stats */}
@@ -292,11 +305,16 @@ export default function TrainingPage() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">{selectedPersona?.name}</h3>
                     <p className="text-sm text-gray-600">{selectedPersona?.type}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Phone className="w-3 h-3 text-green-600" />
+                      <span className="text-xs text-green-600 font-medium">Voice Call Active</span>
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm text-gray-600">Lead Cost</div>
                   <div className="text-lg font-bold text-red-600">$4.50</div>
+                  <div className="text-xs text-gray-500 mt-1">Click "Start Call" to begin</div>
                 </div>
               </div>
             </div>

@@ -325,6 +325,9 @@ export default function VoiceCall({ persona, onAgentResponse, onCustomerResponse
   // Get persona greeting
   const getPersonaGreeting = (persona: Persona): string => {
     const greetings = {
+      'skeptical-shopper': "Hi, I filled out a form online but I'm not really serious about buying. I was just comparing prices and wanted to see what's out there. What can you tell me?",
+      'busy-professional': "Hello? I'm in the middle of something. I got a call from you guys but I'm really busy right now. What do you need?",
+      'price-hunter': "Hi, I'm looking for the best deal on insurance. I've been comparing quotes and I want to know what your best price is. What can you offer me?",
       sarah: "Hi, I'm Sarah. I'm looking for insurance but honestly, I'm pretty busy and not sure I need this right now. What can you tell me?",
       'mike-jennifer': "Hello, we're Mike and Jennifer. We have two kids and want to make sure we have the right coverage. We've been doing some research but it's overwhelming.",
       robert: "Good afternoon. I've been with my current insurance company for 15 years. They've been good to me, but I'm curious what you have to offer. What makes you different?"
