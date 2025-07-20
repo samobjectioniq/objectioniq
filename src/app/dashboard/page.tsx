@@ -65,7 +65,7 @@ export default function DashboardPage() {
     if (user) {
       loadDashboardData();
     }
-  }, [user]);
+  }, [user, loadDashboardData]);
 
   const loadDashboardData = async () => {
     if (!user) return;

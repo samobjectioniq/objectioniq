@@ -28,7 +28,7 @@ export default function TrainingPage() {
       name: 'Skeptical Internet Shopper',
       age: 32,
       type: 'Price Comparison',
-      description: 'Filled out a lead form but wasn\'t serious. Just wanted to see what\'s out there.',
+      description: 'Filled out a lead form but wasn&apos;t serious. Just wanted to see what&apos;s out there.',
       characteristics: ['Price-focused', 'Not serious', 'Comparison shopping', 'Time-waster'],
       color: 'red',
       avatar: 'S',
@@ -186,10 +186,10 @@ export default function TrainingPage() {
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
                 Practice Before You Dial
               </h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Master real internet lead objections before you waste another $4.50 lead. 
-                Choose a scenario to practice with AI customers that mirror your actual expensive leads.
-              </p>
+              <p className="text-gray-600">
+                  Master real internet lead objections before you waste another $4.50 lead. 
+                  Choose a scenario to practice with AI customers that mirror your actual expensive leads.
+                </p>
             </div>
 
             {/* Quick Stats */}
@@ -233,7 +233,7 @@ export default function TrainingPage() {
                     Before You Start:
                   </h4>
                   <ul className="text-sm text-gray-600 space-y-2">
-                    <li>• Review the lead's objection patterns</li>
+                    <li>• Review the lead&apos;s objection patterns</li>
                     <li>• Prepare your value proposition</li>
                     <li>• Have appointment-setting scripts ready</li>
                     <li>• Practice your opening hook</li>

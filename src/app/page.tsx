@@ -212,7 +212,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Cold Call Mastery</h3>
               <p className="text-gray-600">
-                Practice interrupting busy prospects and handling "I'm not interested" objections
+                Practice interrupting busy prospects and handling &quot;I&apos;m not interested&quot; objections
               </p>
             </div>
             
@@ -222,7 +222,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Price Objection Handling</h3>
               <p className="text-gray-600">
-                Master "too expensive" objections and value-based selling techniques
+                Master &quot;too expensive&quot; objections and value-based selling techniques
               </p>
             </div>
             
@@ -232,7 +232,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">AI-Powered Scenarios</h3>
               <p className="text-gray-600">
-                Realistic internet lead objections: "I was just browsing", "I already have insurance"
+                Realistic internet lead objections: &quot;I was just browsing&quot;, &quot;I already have insurance&quot;
               </p>
             </div>
             
@@ -288,11 +288,11 @@ export default function Home() {
                   <span className="text-2xl font-bold text-red-600">S</span>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900">Skeptical Internet Shopper</h3>
-                <p className="text-red-600 font-medium">"I was just comparing prices"</p>
+                <p className="text-red-600 font-medium">&quot;I was just comparing prices&quot;</p>
               </div>
               <div className="space-y-3">
                 <p className="text-gray-600 text-sm">
-                  Filled out a lead form but wasn't serious. Just wanted to see what's out there.
+                  Filled out a lead form but wasn&apos;t serious. Just wanted to see what&apos;s out there.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">Price-focused</span>
@@ -308,7 +308,7 @@ export default function Home() {
                   <span className="text-2xl font-bold text-orange-600">B</span>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900">Busy Professional</h3>
-                <p className="text-orange-600 font-medium">"I'm in a meeting"</p>
+                <p className="text-orange-600 font-medium">&quot;I&apos;m in a meeting&quot;</p>
               </div>
               <div className="space-y-3">
                 <p className="text-gray-600 text-sm">
@@ -328,7 +328,7 @@ export default function Home() {
                   <span className="text-2xl font-bold text-purple-600">P</span>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900">Price-Focused Bargain Hunter</h3>
-                <p className="text-purple-600 font-medium">"What's your best price?"</p>
+                <p className="text-purple-600 font-medium">&quot;What&apos;s your best price?&quot;</p>
               </div>
               <div className="space-y-3">
                 <p className="text-gray-600 text-sm">

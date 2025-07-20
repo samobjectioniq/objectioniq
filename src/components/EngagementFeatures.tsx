@@ -142,7 +142,7 @@ export default function EngagementFeatures({ onShowAchievements, onShowGoals }: 
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-green-600" />
               <span className="text-sm text-green-700 font-medium">
-                Keep it up! You're on a {streak.current}-day streak
+                Keep it up! You&apos;re on a roll! Keep practicing to maintain your streak.
               </span>
             </div>
           </div>
@@ -230,7 +230,7 @@ export default function EngagementFeatures({ onShowAchievements, onShowGoals }: 
       {/* Daily Goal */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Today's Goal</h3>
+          <h3 className="text-lg font-semibold">Today&apos;s Goal</h3>
           <Target className="w-6 h-6" />
         </div>
         
