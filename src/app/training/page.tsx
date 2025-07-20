@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Clock, Target, DollarSign, Shield, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { sessionService } from '@/lib/database';
@@ -24,34 +24,52 @@ export default function TrainingPage() {
 
   const personas: Persona[] = [
     {
-      id: 'sarah',
-      name: 'Sarah',
+      id: 'skeptical-shopper',
+      name: 'Skeptical Internet Shopper',
+      age: 32,
+      type: 'Price Comparison',
+      description: 'Filled out a lead form but wasn\'t serious. Just wanted to see what\'s out there.',
+      characteristics: ['Price-focused', 'Not serious', 'Comparison shopping', 'Time-waster'],
+      color: 'red',
+      avatar: 'S',
+      objections: [
+        "I was just comparing prices online",
+        "I'm not really looking to buy right now",
+        "I was just curious about rates",
+        "Can you just send me a quote?"
+      ]
+    },
+    {
+      id: 'busy-professional',
+      name: 'Busy Professional',
       age: 28,
-      type: 'Young Professional',
-      description: 'Price-sensitive tech professional with a busy lifestyle',
-      characteristics: ['Price-conscious', 'Time-pressed', 'Tech-savvy', 'Skeptical of sales pitches'],
-      color: 'blue',
-      avatar: 'S'
+      type: 'Interrupted',
+      description: 'Annoyed by the sales call interruption. Wants you to get to the point quickly.',
+      characteristics: ['Time-pressed', 'Interrupted', 'Direct', 'Impatient'],
+      color: 'orange',
+      avatar: 'B',
+      objections: [
+        "I'm in a meeting right now",
+        "I don't have time for this",
+        "Can you just get to the point?",
+        "I'm not interested"
+      ]
     },
     {
-      id: 'mike-jennifer',
-      name: 'Mike & Jennifer',
-      age: 35,
-      type: 'Family Focused',
-      description: 'Safety-conscious parents who want comprehensive coverage',
-      characteristics: ['Safety-focused', 'Detail-oriented', 'Family priorities', 'Research-driven'],
-      color: 'green',
-      avatar: 'M&J'
-    },
-    {
-      id: 'robert',
-      name: 'Robert',
-      age: 67,
-      type: 'Skeptical Retiree',
-      description: 'Loyal to current provider but open to better value',
-      characteristics: ['Provider-loyal', 'Question-heavy', 'Value-focused', 'Experience-based'],
+      id: 'price-hunter',
+      name: 'Price-Focused Bargain Hunter',
+      age: 45,
+      type: 'Cost Obsessed',
+      description: 'Only cares about cost. Will compare every quote and demand the lowest price.',
+      characteristics: ['Price-obsessed', 'Comparison-driven', 'Value-blind', 'Aggressive negotiator'],
       color: 'purple',
-      avatar: 'R'
+      avatar: 'P',
+      objections: [
+        "What's your best price?",
+        "I can get it cheaper elsewhere",
+        "That's too expensive",
+        "I only care about the bottom line"
+      ]
     }
   ];
 
@@ -79,7 +97,7 @@ export default function TrainingPage() {
           objections_handled: sessionStats.objectionsHandled,
           confidence_score: sessionStats.confidenceScore,
           conversation_history: conversationHistory,
-          notes: `Training session with ${selectedPersona.name}`
+          notes: `Lead conversion training with ${selectedPersona.name}`
         });
       } catch (error) {
         console.error('Error saving session:', error);
@@ -132,7 +150,7 @@ export default function TrainingPage() {
               <Link href="/" className="text-blue-600 hover:text-blue-700 transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
-              <h1 className="text-xl font-bold text-gray-900">ObjectionIQ Training</h1>
+              <h1 className="text-xl font-bold text-gray-900">Lead Conversion Training</h1>
             </div>
             <div className="flex items-center gap-4">
               <Link href="/dashboard" className="text-gray-600 hover:text-blue-600 text-sm font-medium transition-colors">
@@ -161,13 +179,42 @@ export default function TrainingPage() {
           <div className="space-y-8">
             {/* Welcome Section */}
             <div className="text-center">
+              <div className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+                <Shield className="w-4 h-4" />
+                Protect Your Lead Investment
+              </div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Choose Your Training Partner
+                Practice Before You Dial
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Select a customer persona to practice with. Each persona has unique characteristics 
-                and will present different types of objections to help you improve your sales skills.
+                Master real internet lead objections before you waste another $4.50 lead. 
+                Choose a scenario to practice with AI customers that mirror your actual expensive leads.
               </p>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              <div className="bg-white rounded-xl shadow-lg p-6 text-center border border-gray-200">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <DollarSign className="w-6 h-6 text-red-600" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900">$4.50</div>
+                <div className="text-sm text-gray-600">Average Lead Cost</div>
+              </div>
+              <div className="bg-white rounded-xl shadow-lg p-6 text-center border border-gray-200">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Target className="w-6 h-6 text-orange-600" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900">85%</div>
+                <div className="text-sm text-gray-600">Wasted on Bad Calls</div>
+              </div>
+              <div className="bg-white rounded-xl shadow-lg p-6 text-center border border-gray-200">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Zap className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900">5 min</div>
+                <div className="text-sm text-gray-600">Daily Practice</div>
+              </div>
             </div>
 
             {/* Persona Selection */}
@@ -176,59 +223,94 @@ export default function TrainingPage() {
               onSelectPersona={startSession} 
             />
 
-            {/* Quick Tips */}
+            {/* Lead-Focused Training Tips */}
             <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Training Tips</h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <h4 className="font-medium text-gray-800">Before You Start:</h4>
-                  <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• Find a quiet environment</li>
-                    <li>• Allow microphone access</li>
-                    <li>• Speak clearly and naturally</li>
-                    <li>• Listen to the AI customer&apos;s responses</li>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Lead Conversion Training Tips</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-800 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-blue-600" />
+                    Before You Start:
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-2">
+                    <li>• Review the lead's objection patterns</li>
+                    <li>• Prepare your value proposition</li>
+                    <li>• Have appointment-setting scripts ready</li>
+                    <li>• Practice your opening hook</li>
                   </ul>
                 </div>
-                <div className="space-y-2">
-                  <h4 className="font-medium text-gray-800">During Training:</h4>
-                  <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• Address objections directly</li>
-                    <li>• Ask clarifying questions</li>
-                    <li>• Provide specific examples</li>
-                    <li>• Build rapport naturally</li>
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-800 flex items-center gap-2">
+                    <Target className="w-4 h-4 text-green-600" />
+                    During Training:
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-2">
+                    <li>• Address objections immediately</li>
+                    <li>• Focus on value over price</li>
+                    <li>• Ask qualifying questions</li>
+                    <li>• Practice closing techniques</li>
                   </ul>
                 </div>
+              </div>
+            </div>
+
+            {/* Quick Warm-up Sessions */}
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-6">
+              <h3 className="text-lg font-semibold mb-4">Quick 5-Minute Warm-ups</h3>
+              <p className="text-blue-100 mb-4">
+                Need a quick confidence boost before your calling block? Try these focused sessions:
+              </p>
+              <div className="grid md:grid-cols-3 gap-4">
+                <button className="bg-white/20 hover:bg-white/30 text-white p-4 rounded-lg transition-colors text-left">
+                  <div className="font-medium">Price Objections</div>
+                  <div className="text-sm text-blue-100">Master "too expensive" responses</div>
+                </button>
+                <button className="bg-white/20 hover:bg-white/30 text-white p-4 rounded-lg transition-colors text-left">
+                  <div className="font-medium">Time Objections</div>
+                  <div className="text-sm text-blue-100">Handle "I'm busy" scenarios</div>
+                </button>
+                <button className="bg-white/20 hover:bg-white/30 text-white p-4 rounded-lg transition-colors text-left">
+                  <div className="font-medium">Appointment Setting</div>
+                  <div className="text-sm text-blue-100">Practice closing techniques</div>
+                </button>
               </div>
             </div>
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Active Session */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
+            {/* Session Header */}
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 bg-${selectedPersona?.color}-100 rounded-full flex items-center justify-center`}>
-                    <span className={`text-xl font-bold text-${selectedPersona?.color}-600`}>
-                      {selectedPersona?.avatar}
-                    </span>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${
+                    selectedPersona?.color === 'red' ? 'bg-red-500' :
+                    selectedPersona?.color === 'orange' ? 'bg-orange-500' :
+                    'bg-purple-500'
+                  }`}>
+                    {selectedPersona?.avatar}
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">
-                      Training with {selectedPersona?.name}
-                    </h2>
-                    <p className="text-gray-600">{selectedPersona?.type}</p>
+                    <h3 className="text-lg font-semibold text-gray-900">{selectedPersona?.name}</h3>
+                    <p className="text-sm text-gray-600">{selectedPersona?.type}</p>
                   </div>
                 </div>
-                <SessionStats stats={sessionStats} />
+                <div className="text-right">
+                  <div className="text-sm text-gray-600">Lead Cost</div>
+                  <div className="text-lg font-bold text-red-600">$4.50</div>
+                </div>
               </div>
-              
-              <VoiceInterface 
-                persona={selectedPersona!}
-                onSessionUpdate={setSessionStats}
-                onEndSession={endSession}
-                onConversationUpdate={setConversationHistory}
-              />
             </div>
+
+            {/* Voice Interface */}
+            <VoiceInterface
+              persona={selectedPersona!}
+              onSessionUpdate={setSessionStats}
+              onEndSession={endSession}
+              onConversationUpdate={setConversationHistory}
+            />
+
+            {/* Session Stats */}
+            <SessionStats stats={sessionStats} />
           </div>
         )}
       </div>

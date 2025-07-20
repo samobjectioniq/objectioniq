@@ -424,146 +424,186 @@ export default function VoiceCall({ persona, onAgentResponse, onCustomerResponse
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+      {/* Call Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${
+              persona.color === 'blue' ? 'bg-blue-500' :
+              persona.color === 'green' ? 'bg-green-500' :
+              'bg-purple-500'
+            }`}>
+              {persona.avatar}
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">{persona.name}</h3>
+              <p className="text-blue-100 text-sm">{persona.type}</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-sm text-blue-100">Call Duration</div>
+            <div className="text-xl font-mono font-semibold">{formatDuration(callState.callDuration)}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Call Status */}
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-3 h-3 rounded-full ${
+              callState.isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+            }`} />
+            <span className="text-sm font-medium text-gray-700">
+              {callState.isConnected ? 'Connected' : 'Disconnected'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Signal className="w-4 h-4 text-gray-400" />
+            <span className="text-xs text-gray-500">AI Customer</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Audio Level Indicator */}
+      {callState.hasPermission && (
+        <div className="px-6 py-4 bg-gray-50">
+          <div className="flex items-center gap-3">
+            <div className="text-sm font-medium text-gray-700">Your Voice</div>
+            <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-100 ease-out"
+                style={{ width: `${callState.audioLevel}%` }}
+              />
+            </div>
+            <div className="text-xs text-gray-500 w-8 text-right">
+              {Math.round(callState.audioLevel)}%
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Call Controls */}
-      <div className="flex items-center justify-center gap-2 sm:gap-4">
-        {!callState.isConnected ? (
-          <Button
-            onClick={startCall}
-            disabled={!callState.browserCompatibility.isSupported}
-            size="lg"
-            className="rounded-full p-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl"
-            icon={<Phone className="w-6 h-6" />}
+      <div className="p-6">
+        <div className="grid grid-cols-3 gap-4">
+          {/* Mute Button */}
+          <button
+            onClick={toggleMute}
+            className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all duration-200 ${
+              callState.isMuted 
+                ? 'bg-red-50 text-red-600 border-2 border-red-200' 
+                : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-gray-200'
+            }`}
           >
-            Start Call
-          </Button>
-        ) : (
-          <>
-            <Button
-              onClick={endCall}
-              variant="danger"
-              size="lg"
-              className="rounded-full p-4 shadow-lg hover:shadow-xl"
-              icon={<PhoneOff className="w-6 h-6" />}
-            >
-              End Call
-            </Button>
-            
-            <Button
-              onClick={toggleMute}
-              variant={callState.isMuted ? "danger" : "outline"}
-              size="lg"
-              className="rounded-full p-4 shadow-lg hover:shadow-xl"
-              icon={callState.isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-            >
+            {callState.isMuted ? (
+              <VolumeX className="w-6 h-6" />
+            ) : (
+              <Volume2 className="w-6 h-6" />
+            )}
+            <span className="text-xs font-medium">
               {callState.isMuted ? 'Unmute' : 'Mute'}
-            </Button>
-          </>
+            </span>
+          </button>
+
+          {/* Main Call Button */}
+          <button
+            onClick={callState.isConnected ? endCall : startCall}
+            className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all duration-200 ${
+              callState.isConnected
+                ? 'bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100'
+                : 'bg-green-50 text-green-600 border-2 border-green-200 hover:bg-green-100'
+            }`}
+          >
+            {callState.isConnected ? (
+              <PhoneOff className="w-6 h-6" />
+            ) : (
+              <Phone className="w-6 h-6" />
+            )}
+            <span className="text-xs font-medium">
+              {callState.isConnected ? 'End Call' : 'Start Call'}
+            </span>
+          </button>
+
+          {/* Settings Button */}
+          <button
+            onClick={() => setShowShortcuts(!showShortcuts)}
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-gray-200 transition-all duration-200"
+          >
+            <Settings className="w-6 h-6" />
+            <span className="text-xs font-medium">Settings</span>
+          </button>
+        </div>
+
+        {/* Status Indicators */}
+        <div className="mt-6 space-y-3">
+          {callState.isListening && (
+            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+              <span className="text-sm text-blue-700 font-medium">Listening...</span>
+            </div>
+          )}
+          
+          {callState.isSpeaking && (
+            <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+              <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" />
+              <span className="text-sm text-green-700 font-medium">{persona.name} is speaking...</span>
+            </div>
+          )}
+
+          {callState.error && (
+            <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
+              <AlertCircle className="w-4 h-4 text-red-600" />
+              <span className="text-sm text-red-700">{callState.error}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Keyboard Shortcuts */}
+        {showShortcuts && (
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <Keyboard className="w-4 h-4" />
+              Keyboard Shortcuts
+            </h4>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Space</span>
+                <span className="font-medium">Push to talk</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">M</span>
+                <span className="font-medium">Toggle mute</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Esc</span>
+                <span className="font-medium">End call</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">?</span>
+                <span className="font-medium">Show shortcuts</span>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Keyboard Shortcuts Help */}
-      {showShortcuts && (
-        <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg p-4 shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <Keyboard className="w-4 h-4" />
-              Keyboard Shortcuts
-            </h3>
+      {/* Mobile Optimizations */}
+      <div className="md:hidden p-4 bg-gray-50 border-t border-gray-200">
+        <div className="text-center">
+          <p className="text-xs text-gray-500 mb-2">
+            💡 Tip: Use headphones for better audio quality
+          </p>
+          <div className="flex justify-center gap-2">
             <button
-              onClick={() => setShowShortcuts(false)}
-              className="text-gray-400 hover:text-gray-600"
+              onClick={() => window.open('/training', '_blank')}
+              className="text-xs text-blue-600 hover:text-blue-700 underline"
             >
-              ×
+              Open in new tab
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Start Call:</span>
-              <kbd className="px-2 py-1 bg-gray-100 rounded text-gray-700">Enter</kbd>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">End Call:</span>
-              <kbd className="px-2 py-1 bg-gray-100 rounded text-gray-700">Esc</kbd>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Toggle Mute:</span>
-              <kbd className="px-2 py-1 bg-gray-100 rounded text-gray-700">M</kbd>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Show Help:</span>
-              <kbd className="px-2 py-1 bg-gray-100 rounded text-gray-700">?</kbd>
-            </div>
-          </div>
         </div>
-      )}
-
-      {/* Call Status */}
-      {callState.isConnected && (
-        <div className="space-y-4">
-          {/* Call Duration */}
-          <div className="flex items-center justify-center gap-2 text-gray-600">
-            <Clock className="w-4 h-4" />
-            <span className="font-mono">{formatDuration(callState.callDuration)}</span>
-          </div>
-
-          {/* Audio Quality Indicator */}
-          <div className="flex items-center justify-center gap-2">
-            <Signal className="w-4 h-4 text-gray-600" />
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${getAudioQualityIndicator(callState.audioLevel).color}`}></div>
-              <span className="text-sm text-gray-600">{getAudioQualityIndicator(callState.audioLevel).text}</span>
-            </div>
-          </div>
-
-          {/* Voice Activity */}
-          <div className="flex items-center justify-center gap-2">
-            {callState.isListening && (
-              <div className="flex items-center gap-1">
-                <Mic className="w-4 h-4 text-blue-600 animate-pulse" />
-                <span className="text-sm text-blue-600">Listening...</span>
-              </div>
-            )}
-            {callState.isSpeaking && (
-              <div className="flex items-center gap-1">
-                <Volume2 className="w-4 h-4 text-green-600 animate-pulse" />
-                <span className="text-sm text-green-600">{persona.name} speaking...</span>
-              </div>
-            )}
-            {callState.isMuted && (
-              <div className="flex items-center gap-1">
-                <VolumeX className="w-4 h-4 text-red-600" />
-                <span className="text-sm text-red-600">Muted</span>
-              </div>
-            )}
-          </div>
-
-          {/* Audio Level Meter */}
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-100"
-              style={{ width: `${callState.audioLevel}%` }}
-            ></div>
-          </div>
-        </div>
-      )}
-
-      {/* Permission Request */}
-      {!callState.hasPermission && !callState.isConnected && callState.browserCompatibility.isSupported && (
-        <div className="text-center text-gray-600">
-          <p>Click the call button to start and grant microphone permission</p>
-        </div>
-      )}
-
-      {/* Browser Compatibility Warning */}
-      {!callState.browserCompatibility.isSupported && !callState.isConnected && (
-        <div className="text-center text-yellow-600 bg-yellow-50 p-3 rounded-lg">
-          <p className="text-sm">
-            <strong>Browser Compatibility Warning:</strong><br/>
-            For best experience, use Chrome, Edge, or Safari with microphone access.
-          </p>
-        </div>
-      )}
+      </div>
     </div>
   );
 } 

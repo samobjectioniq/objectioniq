@@ -5,8 +5,9 @@ export interface Persona {
   type: string;
   description: string;
   characteristics: string[];
-  color: 'blue' | 'green' | 'purple';
+  color: 'blue' | 'green' | 'purple' | 'red' | 'orange';
   avatar: string;
+  objections?: string[];
 }
 
 export interface SessionStats {

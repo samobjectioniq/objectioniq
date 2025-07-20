@@ -43,7 +43,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading ? (
-          <LoadingSpinner size="sm" className="mr-2" />
+          <LoadingSpinner size="sm" />
         ) : icon ? (
           <span className="mr-2">{icon}</span>
         ) : null}

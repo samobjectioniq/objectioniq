@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Search, Filter, Download, Target, TrendingUp, Clock, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Download, Target, TrendingUp, Clock, MessageSquare, DollarSign, Shield, Zap, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { sessionService, goalService, performanceMetricsService } from '@/lib/database';
@@ -20,6 +20,12 @@ interface DashboardData {
     successRate: number;
     averageCallDuration: number;
     objectionsPerSession: number;
+    // Lead conversion metrics
+    leadConversionRate: number;
+    averageLeadCost: number;
+    totalLeadInvestment: number;
+    potentialSavings: number;
+    costPerSale: number;
   };
   goals: any[];
   recommendations: any[];
@@ -35,7 +41,12 @@ export default function DashboardPage() {
       totalObjections: 0,
       successRate: 0,
       averageCallDuration: 0,
-      objectionsPerSession: 0
+      objectionsPerSession: 0,
+      leadConversionRate: 0,
+      averageLeadCost: 4.50,
+      totalLeadInvestment: 0,
+      potentialSavings: 0,
+      costPerSale: 0
     },
     goals: [],
     recommendations: []
@@ -128,6 +139,12 @@ export default function DashboardPage() {
         const averageCallDuration = totalSessions > 0 ? totalDuration / totalSessions : 0;
         const objectionsPerSession = totalSessions > 0 ? totalObjections / totalSessions : 0;
 
+        // Lead conversion calculations
+        const leadConversionRate = successRate; // Simplified for demo
+        const totalLeadInvestment = totalSessions * 4.50; // Assuming $4.50 per lead
+        const costPerSale = totalSessions > 0 ? totalLeadInvestment / totalSessions : 0;
+        const potentialSavings = totalLeadInvestment * 0.3; // 30% improvement potential
+
         // Use aggregated metrics if available, otherwise use calculated metrics
         const metrics = aggregated ? {
           totalSessions: aggregated.totalSessions,
@@ -135,14 +152,24 @@ export default function DashboardPage() {
           totalObjections: aggregated.totalObjections,
           successRate: aggregated.averageSuccessRate,
           averageCallDuration: aggregated.averageCallDuration,
-          objectionsPerSession: aggregated.objectionsPerSession
+          objectionsPerSession: aggregated.objectionsPerSession,
+          leadConversionRate: aggregated.averageSuccessRate,
+          averageLeadCost: 4.50,
+          totalLeadInvestment: aggregated.totalSessions * 4.50,
+          potentialSavings: (aggregated.totalSessions * 4.50) * 0.3,
+          costPerSale: aggregated.totalSessions > 0 ? (aggregated.totalSessions * 4.50) / aggregated.totalSessions : 0
         } : {
           totalSessions,
           totalDuration,
           totalObjections,
           successRate,
           averageCallDuration,
-          objectionsPerSession
+          objectionsPerSession,
+          leadConversionRate,
+          averageLeadCost: 4.50,
+          totalLeadInvestment,
+          potentialSavings,
+          costPerSale
         };
 
         const recommendations = generateRecommendations(sessions, metrics.successRate, metrics.objectionsPerSession);
@@ -168,11 +195,11 @@ export default function DashboardPage() {
     if (successRate < 70) {
       recommendations.push({
         id: 1,
-        type: 'success_rate',
-        title: 'Improve Success Rate',
-        description: 'Your success rate is below target. Focus on building rapport and addressing objections more effectively.',
+        type: 'conversion_rate',
+        title: 'Improve Lead Conversion Rate',
+        description: 'Your conversion rate is below target. Focus on handling objections more effectively to protect your lead investment.',
         priority: 'high',
-        action: 'Practice with Sarah persona to improve price objection handling'
+        action: 'Practice with Skeptical Internet Shopper to improve price objection handling'
       });
     }
     
@@ -181,9 +208,9 @@ export default function DashboardPage() {
         id: 2,
         type: 'objections',
         title: 'Handle More Objections',
-        description: 'You\'re handling fewer objections per session than average. Try to engage customers more deeply.',
+        description: 'You\'re handling fewer objections per session than average. Engage leads more deeply to improve conversion.',
         priority: 'medium',
-        action: 'Practice with Robert persona to experience more complex objections'
+        action: 'Practice with Price-Focused Bargain Hunter to experience more complex objections'
       });
     }
     
@@ -192,29 +219,32 @@ export default function DashboardPage() {
         id: 3,
         type: 'practice',
         title: 'Increase Practice Sessions',
-        description: 'More practice sessions will help you improve faster. Aim for at least 2-3 sessions per week.',
+        description: 'More practice sessions will help you improve faster. Aim for at least 2-3 sessions per week to protect your lead investment.',
         priority: 'medium',
-        action: 'Schedule regular training sessions with different personas'
+        action: 'Schedule regular training sessions with different lead scenarios'
+      });
+    }
+
+    if (dashboardData.metrics.costPerSale > 100) {
+      recommendations.push({
+        id: 4,
+        type: 'cost_per_sale',
+        title: 'Reduce Cost Per Sale',
+        description: 'Your cost per sale is high. Focus on improving conversion rates to reduce lead waste.',
+        priority: 'high',
+        action: 'Practice appointment setting techniques with Busy Professional persona'
       });
     }
 
     return recommendations;
   };
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: TrendingUp },
-    { id: 'sessions', label: 'Session History', icon: Clock },
-    { id: 'performance', label: 'Performance', icon: Target },
-    { id: 'goals', label: 'Goals', icon: Target },
-    { id: 'coaching', label: 'Coaching', icon: MessageSquare }
-  ];
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <p className="mt-4 text-gray-600">Loading your lead conversion dashboard...</p>
         </div>
       </div>
     );
@@ -222,10 +252,10 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h2>
-          <p className="text-gray-600 mb-6">Please sign in to access your dashboard.</p>
+          <p className="text-gray-600 mb-6">Please sign in to view your lead conversion dashboard.</p>
           <Link href="/" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
             Go to Home
           </Link>
@@ -234,125 +264,139 @@ export default function DashboardPage() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
               <Link href="/" className="text-blue-600 hover:text-blue-700 transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
-              <h1 className="text-xl font-bold text-gray-900">Training Dashboard</h1>
+              <h1 className="text-xl font-bold text-gray-900">Lead Conversion Dashboard</h1>
             </div>
             <div className="flex items-center gap-4">
-              <button className="text-sm text-gray-600 hover:text-gray-800 transition-colors">
-                <Download className="w-4 h-4" />
-              </button>
+              <Link href="/training" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                Practice Before I Dial
+              </Link>
             </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tab Navigation */}
-        <div className="border-b border-gray-200 mb-8">
-          <nav className="-mb-px flex space-x-8">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        <div className="space-y-8">
-          {activeTab === 'overview' && (
-            <div className="space-y-8">
-              {/* Key Metrics */}
-              <PerformanceMetrics metrics={dashboardData.metrics} />
-              
-              {/* Progress Charts */}
-              <ProgressCharts sessions={dashboardData.sessions} />
-              
-              {/* Quick Actions */}
-              <div className="grid md:grid-cols-3 gap-6">
-                <Link href="/training" className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <TrendingUp className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Start New Session</h3>
-                    <p className="text-sm text-gray-600">Begin a new training session with any persona</p>
-                  </div>
-                </Link>
-                
-                <button className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Target className="w-6 h-6 text-green-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Set Goals</h3>
-                    <p className="text-sm text-gray-600">Define your training objectives and targets</p>
-                  </div>
-                </button>
-                
-                <button className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Download className="w-6 h-6 text-purple-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Export Data</h3>
-                    <p className="text-sm text-gray-600">Download your training reports and analytics</p>
-                  </div>
-                </button>
+        {/* Lead Investment Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Lead Investment</p>
+                <p className="text-2xl font-bold text-gray-900">${dashboardData.metrics.totalLeadInvestment.toFixed(0)}</p>
+              </div>
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-red-600" />
               </div>
             </div>
-          )}
+          </div>
 
-          {activeTab === 'sessions' && (
-            <SessionHistory sessions={dashboardData.sessions} onRefresh={loadDashboardData} />
-          )}
-
-          {activeTab === 'performance' && (
-            <div className="space-y-8">
-              <PerformanceMetrics metrics={dashboardData.metrics} />
-              <ProgressCharts sessions={dashboardData.sessions} />
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Conversion Rate</p>
+                <p className="text-2xl font-bold text-gray-900">{dashboardData.metrics.leadConversionRate.toFixed(1)}%</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-green-600" />
+              </div>
             </div>
-          )}
+          </div>
 
-          {activeTab === 'goals' && (
-            <GoalTracking goals={dashboardData.goals} onUpdate={loadDashboardData} />
-          )}
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Cost Per Sale</p>
+                <p className="text-2xl font-bold text-gray-900">${dashboardData.metrics.costPerSale.toFixed(0)}</p>
+              </div>
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                <Target className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </div>
 
-          {activeTab === 'coaching' && (
-            <CoachingRecommendations recommendations={dashboardData.recommendations} />
-          )}
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Potential Savings</p>
+                <p className="text-2xl font-bold text-gray-900">${dashboardData.metrics.potentialSavings.toFixed(0)}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <Zap className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              {[
+                { id: 'overview', label: 'Overview', icon: TrendingUp },
+                { id: 'sessions', label: 'Training Sessions', icon: Clock },
+                { id: 'goals', label: 'Goals', icon: Target },
+                { id: 'recommendations', label: 'Recommendations', icon: MessageSquare }
+              ].map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeTab === tab.id
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          <div className="p-6">
+            {activeTab === 'overview' && (
+              <div className="space-y-6">
+                <div className="grid lg:grid-cols-2 gap-6">
+                  <PerformanceMetrics metrics={dashboardData.metrics} />
+                  <ProgressCharts sessions={dashboardData.sessions} />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'sessions' && (
+              <SessionHistory 
+                sessions={dashboardData.sessions} 
+                onRefresh={loadDashboardData}
+              />
+            )}
+
+            {activeTab === 'goals' && (
+              <GoalTracking 
+                goals={dashboardData.goals} 
+                onUpdate={loadDashboardData}
+              />
+            )}
+
+            {activeTab === 'recommendations' && (
+              <CoachingRecommendations 
+                recommendations={dashboardData.recommendations} 
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

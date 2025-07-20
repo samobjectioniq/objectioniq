@@ -10,7 +10,7 @@ export default function LazyTestPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <LoadingSpinner size="lg" text="Loading Test Suite..." />
+          <LoadingSpinner size="lg" message="Loading Test Suite..." />
         </div>
       </div>
     }>
