@@ -60,10 +60,60 @@ export default function DashboardPage() {
     goals: true
   });
 
-  // Load dashboard data with parallel fetching
+  const generateRecommendations = useCallback((sessions: any[], successRate: number, objectionsPerSession: number) => {
+    const recommendations = [];
+    
+    if (successRate < 70) {
+      recommendations.push({
+        id: 1,
+        type: 'conversion_rate',
+        title: 'Improve Lead Conversion Rate',
+        description: 'Your conversion rate is below target. Focus on handling objections more effectively to protect your lead investment.',
+        priority: 'high',
+        action: 'Practice with Skeptical Internet Shopper to improve price objection handling'
+      });
+    }
+    
+    if (objectionsPerSession < 3) {
+      recommendations.push({
+        id: 2,
+        type: 'objections',
+        title: 'Handle More Objections',
+        description: 'You\'re handling fewer objections per session than average. Engage leads more deeply to improve conversion.',
+        priority: 'medium',
+        action: 'Practice with Price-Focused Bargain Hunter to experience more complex objections'
+      });
+    }
+    
+    if (sessions.length < 10) {
+      recommendations.push({
+        id: 3,
+        type: 'practice',
+        title: 'Increase Practice Sessions',
+        description: 'More practice sessions will help you improve faster. Aim for at least 2-3 sessions per week to protect your lead investment.',
+        priority: 'medium',
+        action: 'Schedule regular training sessions with different lead scenarios'
+      });
+    }
+
+    if (dashboardData.metrics.costPerSale > 100) {
+      recommendations.push({
+        id: 4,
+        type: 'cost_per_sale',
+        title: 'Reduce Cost Per Sale',
+        description: 'Your cost per sale is high. Focus on improving conversion rates to reduce lead waste.',
+        priority: 'high',
+        action: 'Practice appointment setting techniques with Busy Professional persona'
+      });
+    }
+
+    return recommendations;
+  }, [dashboardData.metrics.costPerSale]);
+
   const loadDashboardData = useCallback(async () => {
     if (!user) return;
-
+    
+    setIsLoading(true);
     try {
       // Load all data in parallel for better performance
       const [sessionsResult, goalsResult, metricsResult] = await Promise.allSettled([
@@ -181,63 +231,13 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, generateRecommendations]);
 
   useEffect(() => {
     if (user) {
       loadDashboardData();
     }
   }, [user, loadDashboardData]);
-
-  const generateRecommendations = (sessions: any[], successRate: number, objectionsPerSession: number) => {
-    const recommendations = [];
-    
-    if (successRate < 70) {
-      recommendations.push({
-        id: 1,
-        type: 'conversion_rate',
-        title: 'Improve Lead Conversion Rate',
-        description: 'Your conversion rate is below target. Focus on handling objections more effectively to protect your lead investment.',
-        priority: 'high',
-        action: 'Practice with Skeptical Internet Shopper to improve price objection handling'
-      });
-    }
-    
-    if (objectionsPerSession < 3) {
-      recommendations.push({
-        id: 2,
-        type: 'objections',
-        title: 'Handle More Objections',
-        description: 'You\'re handling fewer objections per session than average. Engage leads more deeply to improve conversion.',
-        priority: 'medium',
-        action: 'Practice with Price-Focused Bargain Hunter to experience more complex objections'
-      });
-    }
-    
-    if (sessions.length < 10) {
-      recommendations.push({
-        id: 3,
-        type: 'practice',
-        title: 'Increase Practice Sessions',
-        description: 'More practice sessions will help you improve faster. Aim for at least 2-3 sessions per week to protect your lead investment.',
-        priority: 'medium',
-        action: 'Schedule regular training sessions with different lead scenarios'
-      });
-    }
-
-    if (dashboardData.metrics.costPerSale > 100) {
-      recommendations.push({
-        id: 4,
-        type: 'cost_per_sale',
-        title: 'Reduce Cost Per Sale',
-        description: 'Your cost per sale is high. Focus on improving conversion rates to reduce lead waste.',
-        priority: 'high',
-        action: 'Practice appointment setting techniques with Busy Professional persona'
-      });
-    }
-
-    return recommendations;
-  };
 
   if (loading) {
     return (

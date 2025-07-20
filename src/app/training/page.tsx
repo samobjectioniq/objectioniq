@@ -198,8 +198,8 @@ export default function TrainingPage() {
                   <h3 className="font-semibold text-blue-900">Voice Call Training</h3>
                 </div>
                 <p className="text-blue-800 text-sm">
-                  Click "Start Call" to initiate a real phone conversation with AI customers. 
-                  Speak naturally as if you're calling an actual internet lead. 
+                  Click &quot;Start Call&quot; to initiate a real phone conversation with AI customers. 
+                  Speak naturally as if you&apos;re calling an actual internet lead. 
                   The AI will respond with realistic objections and objections.
                 </p>
               </div>
@@ -314,7 +314,7 @@ export default function TrainingPage() {
                 <div className="text-right">
                   <div className="text-sm text-gray-600">Lead Cost</div>
                   <div className="text-lg font-bold text-red-600">$4.50</div>
-                  <div className="text-xs text-gray-500 mt-1">Click "Start Call" to begin</div>
+                  <div className="text-xs text-gray-500 mt-1">Click &quot;Start Call&quot; to begin</div>
                 </div>
               </div>
             </div>

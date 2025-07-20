@@ -16,14 +16,14 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastProps[]>([]);
 
-  const addToast = useCallback((toast: Omit<ToastProps, 'id' | 'onClose'>) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    setToasts(prev => [...prev, { ...toast, id, onClose: removeToast }]);
-  }, []);
-
   const removeToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   }, []);
+
+  const addToast = useCallback((toast: Omit<ToastProps, 'id' | 'onClose'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts(prev => [...prev, { ...toast, id, onClose: removeToast }]);
+  }, [removeToast]);
 
   const showToast = useCallback((toast: Omit<ToastProps, 'id' | 'onClose'>) => {
     addToast(toast);
