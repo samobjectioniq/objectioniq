@@ -356,7 +356,7 @@ function testSessionManagement() {
   
   // Test 2: Session state management - check for any state-related elements
   totalTests++;
-  const stateElements = document.querySelectorAll('[data-*], [id*="session"], [id*="state"], [class*="session"], [class*="state"]');
+  const stateElements = document.querySelectorAll('[data-session], [id*="session"], [id*="state"], [class*="session"], [class*="state"]');
   if (stateElements.length > 0) {
     console.log('✅ State management elements found');
     sessionScore++;
