@@ -8,6 +8,7 @@ interface ROIData {
   leadCost: number;
   currentConversion: number;
   improvedConversion: number;
+  averageCommission: number;
 }
 
 export default function ROICalculator() {
@@ -15,7 +16,8 @@ export default function ROICalculator() {
     monthlyLeads: 500,
     leadCost: 10,
     currentConversion: 5,
-    improvedConversion: 8
+    improvedConversion: 8,
+    averageCommission: 300
   });
 
   const [showResults, setShowResults] = useState(false);
@@ -32,8 +34,8 @@ export default function ROICalculator() {
     const currentSales = roiData.monthlyLeads * (roiData.currentConversion / 100);
     const improvedSales = roiData.monthlyLeads * (roiData.improvedConversion / 100);
     
-    const currentRevenue = currentSales * 300; // Average commission per P&C sale
-    const improvedRevenue = improvedSales * 300;
+    const currentRevenue = currentSales * roiData.averageCommission;
+    const improvedRevenue = improvedSales * roiData.averageCommission;
     
     const revenueIncrease = improvedRevenue - currentRevenue;
     const costPerSaleCurrent = monthlySpend / currentSales;
@@ -87,7 +89,7 @@ export default function ROICalculator() {
                   type="number"
                   value={roiData.monthlyLeads}
                   onChange={(e) => handleInputChange('monthlyLeads', Number(e.target.value))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white placeholder-gray-500"
                   placeholder="500"
                   min="300"
                   max="1000"
@@ -112,10 +114,32 @@ export default function ROICalculator() {
                   step="0.01"
                   value={roiData.leadCost}
                   onChange={(e) => handleInputChange('leadCost', Number(e.target.value))}
-                  className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white"
+                  className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white placeholder-gray-500"
                   placeholder="10.00"
                   min="5"
                   max="20"
+                />
+              </div>
+            </div>
+
+            {/* Average Commission */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Average Commission Per Sale
+              </label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  $
+                </div>
+                <input
+                  type="number"
+                  step="10"
+                  value={roiData.averageCommission}
+                  onChange={(e) => handleInputChange('averageCommission', Number(e.target.value))}
+                  className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white placeholder-gray-500"
+                  placeholder="300"
+                  min="100"
+                  max="1000"
                 />
               </div>
             </div>
@@ -131,7 +155,7 @@ export default function ROICalculator() {
                   step="0.1"
                   value={roiData.currentConversion}
                   onChange={(e) => handleInputChange('currentConversion', Number(e.target.value))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white placeholder-gray-500"
                   placeholder="5"
                   min="3"
                   max="8"
@@ -153,7 +177,7 @@ export default function ROICalculator() {
                   step="0.1"
                   value={roiData.improvedConversion}
                   onChange={(e) => handleInputChange('improvedConversion', Number(e.target.value))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white placeholder-gray-500"
                   placeholder="8"
                   min="6"
                   max="12"
@@ -208,6 +232,9 @@ export default function ROICalculator() {
                   <div className="text-xs text-red-500 mt-1">
                     ${results.costPerSaleCurrent.toFixed(0)} per sale
                   </div>
+                  <div className="text-xs text-red-600 mt-1">
+                    ${results.currentRevenue.toLocaleString()} revenue
+                  </div>
                 </div>
 
                 <div className="bg-green-50 rounded-lg p-4 border border-green-200">
@@ -219,6 +246,9 @@ export default function ROICalculator() {
                   <div className="text-xs text-green-600">sales/month</div>
                   <div className="text-xs text-green-500 mt-1">
                     ${results.costPerSaleImproved.toFixed(0)} per sale
+                  </div>
+                  <div className="text-xs text-green-600 mt-1">
+                    ${results.improvedRevenue.toLocaleString()} revenue
                   </div>
                 </div>
               </div>

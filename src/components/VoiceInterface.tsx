@@ -287,7 +287,7 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
           value={currentInput}
           onChange={(e) => setCurrentInput(e.target.value)}
           placeholder="Type your response here..."
-          className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+          className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-gray-900 bg-white placeholder-gray-500"
           disabled={isLoading}
         />
         <Button
