@@ -395,6 +395,7 @@ function testSessionManagement() {
 async function runAllTests() {
   console.log('🚀 Starting ObjectionIQ Comprehensive Test Suite...\n');
   
+  // Run all tests and wait for results
   const results = {
     voiceRecognition: testVoiceRecognition(),
     speechSynthesis: testSpeechSynthesis(),
@@ -405,52 +406,53 @@ async function runAllTests() {
     sessionManagement: testSessionManagement()
   };
   
-  // Wait for async tests
-  setTimeout(() => {
-    console.log('\n📊 FINAL TEST RESULTS:');
-    console.log('========================');
-    
-    Object.entries(results).forEach(([test, result]) => {
-      const status = result ? '✅ PASS' : '❌ FAIL';
-      console.log(`${test}: ${status}`);
-    });
-    
-    const passedTests = Object.values(results).filter(Boolean).length;
-    const totalTests = Object.keys(results).length;
-    const overallScore = (passedTests / totalTests) * 100;
-    
-    console.log(`\n🎯 Overall Score: ${overallScore.toFixed(1)}% (${passedTests}/${totalTests} tests passed)`);
-    
-    if (overallScore >= 80) {
-      console.log('🎉 ObjectionIQ is ready for production!');
-    } else if (overallScore >= 60) {
-      console.log('⚠️ ObjectionIQ needs some improvements before production.');
-    } else {
-      console.log('🚨 ObjectionIQ needs significant work before production.');
-    }
-    
-    // Recommendations
-    console.log('\n💡 RECOMMENDATIONS:');
-    if (!results.voiceRecognition) {
-      console.log('- Add better voice recognition fallbacks');
-    }
-    if (!results.claudeAPI) {
-      console.log('- Check Claude API configuration and credentials');
-    }
-    if (!results.personaDifferentiation) {
-      console.log('- Improve persona-specific prompts and responses');
-    }
-    if (!results.mobileResponsiveness) {
-      console.log('- Enhance mobile UI/UX design');
-    }
-    if (!results.errorHandling) {
-      console.log('- Add more comprehensive error handling');
-    }
-    if (!results.sessionManagement) {
-      console.log('- Implement proper session persistence');
-    }
-    
-  }, 2000);
+  // Wait a moment for any remaining async operations
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  console.log('\n📊 FINAL TEST RESULTS:');
+  console.log('========================');
+  
+  Object.entries(results).forEach(([test, result]) => {
+    const status = result ? '✅ PASS' : '❌ FAIL';
+    console.log(`${test}: ${status}`);
+  });
+  
+  const passedTests = Object.values(results).filter(Boolean).length;
+  const totalTests = Object.keys(results).length;
+  const overallScore = (passedTests / totalTests) * 100;
+  
+  console.log(`\n🎯 Overall Score: ${overallScore.toFixed(1)}% (${passedTests}/${totalTests} tests passed)`);
+  
+  if (overallScore >= 80) {
+    console.log('🎉 ObjectionIQ is ready for production!');
+  } else if (overallScore >= 60) {
+    console.log('⚠️ ObjectionIQ needs some improvements before production.');
+  } else {
+    console.log('🚨 ObjectionIQ needs significant work before production.');
+  }
+  
+  // Recommendations
+  console.log('\n💡 RECOMMENDATIONS:');
+  if (!results.voiceRecognition) {
+    console.log('- Add better voice recognition fallbacks');
+  }
+  if (!results.claudeAPI) {
+    console.log('- Check Claude API configuration and credentials');
+  }
+  if (!results.personaDifferentiation) {
+    console.log('- Improve persona-specific prompts and responses');
+  }
+  if (!results.mobileResponsiveness) {
+    console.log('- Enhance mobile UI/UX design');
+  }
+  if (!results.errorHandling) {
+    console.log('- Add more comprehensive error handling');
+  }
+  if (!results.sessionManagement) {
+    console.log('- Implement proper session persistence');
+  }
+  
+  return results;
 }
 
 // Export for manual testing
