@@ -87,7 +87,7 @@ export default function ROICalculator() {
                   type="number"
                   value={roiData.monthlyLeads}
                   onChange={(e) => handleInputChange('monthlyLeads', Number(e.target.value))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white"
                   placeholder="100"
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -110,7 +110,7 @@ export default function ROICalculator() {
                   step="0.01"
                   value={roiData.leadCost}
                   onChange={(e) => handleInputChange('leadCost', Number(e.target.value))}
-                  className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white"
                   placeholder="4.50"
                 />
               </div>
@@ -127,7 +127,7 @@ export default function ROICalculator() {
                   step="0.1"
                   value={roiData.currentConversion}
                   onChange={(e) => handleInputChange('currentConversion', Number(e.target.value))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white"
                   placeholder="15"
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -147,7 +147,7 @@ export default function ROICalculator() {
                   step="0.1"
                   value={roiData.improvedConversion}
                   onChange={(e) => handleInputChange('improvedConversion', Number(e.target.value))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 bg-white"
                   placeholder="25"
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
