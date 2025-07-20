@@ -412,13 +412,17 @@ async function runAllTests() {
   console.log('\n📊 FINAL TEST RESULTS:');
   console.log('========================');
   
+  // Convert all results to booleans and log them
+  const booleanResults = {};
   Object.entries(results).forEach(([test, result]) => {
-    const status = result ? '✅ PASS' : '❌ FAIL';
-    console.log(`${test}: ${status}`);
+    const booleanResult = Boolean(result);
+    booleanResults[test] = booleanResult;
+    const status = booleanResult ? '✅ PASS' : '❌ FAIL';
+    console.log(`${test}: ${status} (${result})`);
   });
   
-  const passedTests = Object.values(results).filter(Boolean).length;
-  const totalTests = Object.keys(results).length;
+  const passedTests = Object.values(booleanResults).filter(Boolean).length;
+  const totalTests = Object.keys(booleanResults).length;
   const overallScore = (passedTests / totalTests) * 100;
   
   console.log(`\n🎯 Overall Score: ${overallScore.toFixed(1)}% (${passedTests}/${totalTests} tests passed)`);
@@ -433,26 +437,26 @@ async function runAllTests() {
   
   // Recommendations
   console.log('\n💡 RECOMMENDATIONS:');
-  if (!results.voiceRecognition) {
+  if (!booleanResults.voiceRecognition) {
     console.log('- Add better voice recognition fallbacks');
   }
-  if (!results.claudeAPI) {
+  if (!booleanResults.claudeAPI) {
     console.log('- Check Claude API configuration and credentials');
   }
-  if (!results.personaDifferentiation) {
+  if (!booleanResults.personaDifferentiation) {
     console.log('- Improve persona-specific prompts and responses');
   }
-  if (!results.mobileResponsiveness) {
+  if (!booleanResults.mobileResponsiveness) {
     console.log('- Enhance mobile UI/UX design');
   }
-  if (!results.errorHandling) {
+  if (!booleanResults.errorHandling) {
     console.log('- Add more comprehensive error handling');
   }
-  if (!results.sessionManagement) {
+  if (!booleanResults.sessionManagement) {
     console.log('- Implement proper session persistence');
   }
   
-  return results;
+  return booleanResults;
 }
 
 // Export for manual testing
