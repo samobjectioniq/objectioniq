@@ -17,6 +17,7 @@ import {
 } from '@/utils/speechUtils';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import VoiceCallInterface from '@/components/VoiceCallInterface';
 
 interface VoiceInterfaceProps {
   persona: Persona;
@@ -34,6 +35,7 @@ interface CallState {
   audioLevel: number;
   callDuration: number;
   error: string | null;
+  showCallInterface: boolean;
   browserCompatibility: {
     speechRecognition: boolean;
     speechSynthesis: boolean;
@@ -64,6 +66,7 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
     audioLevel: 0,
     callDuration: 0,
     error: null,
+    showCallInterface: false,
     browserCompatibility: { speechRecognition: false, speechSynthesis: false, isSupported: false }
   });
 
@@ -294,7 +297,7 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
   // Start call
   const startCall = useCallback(async () => {
     try {
-      setCallState(prev => ({ ...prev, isConnected: true, error: null }));
+      setCallState(prev => ({ ...prev, isConnected: true, error: null, showCallInterface: true }));
       
       await initializeAudioAnalysis();
       initializeSpeechRecognition();
@@ -319,7 +322,7 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
 
   // End call
   const endCall = useCallback(async () => {
-    setCallState(prev => ({ ...prev, isConnected: false }));
+    setCallState(prev => ({ ...prev, isConnected: false, showCallInterface: false }));
     
     stopListening();
     
@@ -352,6 +355,15 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
     await playMuteToggle();
   }, []);
 
+  // Close call interface
+  const closeCallInterface = useCallback(() => {
+    if (callState.isConnected) {
+      endCall();
+    } else {
+      setCallState(prev => ({ ...prev, showCallInterface: false }));
+    }
+  }, [callState.isConnected, endCall]);
+
   // Get persona greeting
   const getPersonaGreeting = (persona: Persona): string => {
     const greetings = {
@@ -365,70 +377,13 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
     return greetings[persona.id as keyof typeof greetings] || "Hello, I'm interested in learning about insurance options.";
   };
 
-  // Format call duration
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Start session timer
-  useEffect(() => {
-    sessionTimerRef.current = setInterval(() => {
-      setSessionStats(prev => ({
-        ...prev,
-        duration: prev.duration + 1
-      }));
-    }, 1000);
-
-    // Initialize conversation with customer greeting
-    const initialMessage: ConversationMessage = {
-      id: '1',
-      speaker: 'customer',
-      content: getPersonaGreeting(persona),
-      timestamp: new Date()
-    };
-    setConversation([initialMessage]);
-
-    return () => {
-      if (sessionTimerRef.current) {
-        clearInterval(sessionTimerRef.current);
-      }
-    };
-  }, [persona]);
-
-  // Update parent component with session stats
-  useEffect(() => {
-    onSessionUpdate(sessionStats);
-  }, [sessionStats, onSessionUpdate]);
-
-  // Keyboard shortcuts
-  useKeyboardShortcuts([
-    {
-      key: 'r',
-      ctrl: true,
-      action: () => {
-        resetSession();
-        showInfo('Session Reset', 'Training session has been reset');
-      },
-      description: 'Reset session'
-    },
-    {
-      key: 's',
-      ctrl: true,
-      action: () => {
-        exportConversation();
-      },
-      description: 'Save conversation'
-    },
-    {
-      key: '?',
-      action: () => setShowShortcuts(!showShortcuts),
-      description: 'Show shortcuts'
-    }
-  ]);
-
-  // Update parent component with conversation history
+  // Update conversation when it changes
   useEffect(() => {
     if (onConversationUpdate) {
       onConversationUpdate(conversation);
@@ -436,53 +391,44 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
   }, [conversation, onConversationUpdate]);
 
   const generateCustomerResponse = async (agentResponse: string) => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          persona: persona,
-          agentResponse: agentResponse,
-          conversationHistory: conversation
+          message: agentResponse,
+          personaId: persona.id,
+          conversationHistory: conversation.slice(-10) // Last 10 messages for context
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const customerMessage: ConversationMessage = {
-          id: (Date.now() + 1).toString(),
-          speaker: 'customer',
-          content: data.response,
-          timestamp: new Date()
-        };
-
-        setConversation(prev => [...prev, customerMessage]);
-        
-        // Make the AI customer speak their response
-        if (callState.isConnected) {
-          speakText(data.response);
-        }
-        
-        // Update stats
-        setSessionStats(prev => ({
-          ...prev,
-          objectionsHandled: prev.objectionsHandled + (data.response.toLowerCase().includes('objection') ? 1 : 0),
-          confidenceScore: Math.min(100, prev.confidenceScore + 5)
-        }));
-
-        // Show success feedback
-        showSuccess('Response Generated', `${persona.name} responded to your message`);
-        playSuccess();
-      } else {
+      if (!response.ok) {
         throw new Error('Failed to generate response');
       }
+
+      const data = await response.json();
+      
+      const customerMessage: ConversationMessage = {
+        id: Date.now().toString(),
+        speaker: 'customer',
+        content: data.response,
+        timestamp: new Date()
+      };
+
+      setConversation(prev => [...prev, customerMessage]);
+      
+      // Make AI customer speak the response
+      if (callState.isConnected) {
+        speakText(data.response);
+      }
+      
     } catch (error) {
       console.error('Error generating customer response:', error);
       showError('Response Failed', 'Unable to generate customer response. Please try again.');
-      playError();
     } finally {
       setIsLoading(false);
     }
@@ -490,7 +436,7 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
 
   const handleTextSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentInput.trim()) {
+    if (currentInput.trim() && !isLoading) {
       handleAgentResponse(currentInput.trim());
       setCurrentInput('');
     }
@@ -504,43 +450,27 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
       responsesCount: 0,
       confidenceScore: 0
     });
-    
-    // Restart with new greeting
-    const initialMessage: ConversationMessage = {
-      id: '1',
-      speaker: 'customer',
-      content: getPersonaGreeting(persona),
-      timestamp: new Date()
-    };
-    setConversation([initialMessage]);
+    setCallState(prev => ({ 
+      ...prev, 
+      callDuration: 0,
+      error: null 
+    }));
   };
 
   const exportConversation = () => {
-    try {
-      const data = {
-        persona: persona.name,
-        date: new Date().toISOString(),
-        duration: sessionStats.duration,
-        conversation: conversation,
-        stats: sessionStats
-      };
-      
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `conversation-${persona.name}-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      showSuccess('Conversation Exported', 'Your conversation has been saved');
-      playSuccess();
-    } catch (error) {
-      showError('Export Failed', 'Unable to export conversation');
-      playError();
-    }
+    const conversationText = conversation
+      .map(msg => `${msg.speaker === 'agent' ? 'You' : persona.name}: ${msg.content}`)
+      .join('\n\n');
+    
+    const blob = new Blob([conversationText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `conversation-${persona.name}-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   // Cleanup on unmount
@@ -549,285 +479,186 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
       if (callTimerRef.current) clearInterval(callTimerRef.current);
       if (audioLevelRef.current) clearTimeout(audioLevelRef.current);
       if (audioContextRef.current) audioContextRef.current.close();
+      if (synthesisRef.current) synthesisRef.current.cancel();
     };
   }, []);
 
-  if (callState.error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="flex items-center gap-2 text-red-800">
-          <AlertCircle className="w-5 h-5" />
-          <span className="font-medium">Error: {callState.error}</span>
-        </div>
-        <p className="text-red-600 mt-2 text-sm">
-          Please check your microphone permissions and browser compatibility.
-        </p>
-        {!callState.browserCompatibility.isSupported && (
-          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
-            <p className="text-yellow-800 text-sm">
-              <strong>Browser Compatibility:</strong><br/>
-              Speech Recognition: {callState.browserCompatibility.speechRecognition ? '✅' : '❌'}<br/>
-              Speech Synthesis: {callState.browserCompatibility.speechSynthesis ? '✅' : '❌'}
-            </p>
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {/* Voice Call Interface */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-        {/* Call Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${
-                persona.color === 'blue' ? 'bg-blue-500' :
-                persona.color === 'green' ? 'bg-green-500' :
-                'bg-purple-500'
-              }`}>
-                {persona.avatar}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold">{persona.name}</h3>
-                <p className="text-blue-100 text-sm">{persona.type}</p>
-              </div>
+    <div className="max-w-4xl mx-auto p-6">
+      {/* Session Header */}
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <span className="text-blue-600 font-semibold">
+                {persona.name.split(' ').map(n => n[0]).join('')}
+              </span>
             </div>
-            <div className="text-right">
-              <div className="text-sm text-blue-100">Call Duration</div>
-              <div className="text-xl font-mono font-semibold">{formatDuration(callState.callDuration)}</div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">{persona.name}</h2>
+              <p className="text-gray-600 text-sm">{persona.description}</p>
             </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setCallState(prev => ({ ...prev, showCallInterface: true }))}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <Phone className="w-4 h-4" />
+              Start Voice Call
+            </button>
+            
+            <button
+              onClick={() => setShowShortcuts(!showShortcuts)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <Keyboard className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
         {/* Call Status */}
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full ${
-                callState.isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-              }`} />
-              <span className="text-sm font-medium text-gray-700">
-                {callState.isConnected ? 'Connected' : 'Disconnected'}
-              </span>
-            </div>
+        {callState.isConnected && (
+          <div className="flex items-center gap-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center gap-2">
-              <Signal className="w-4 h-4 text-gray-400" />
-              <span className="text-xs text-gray-500">AI Customer</span>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-green-700 font-medium">Voice Call Active</span>
             </div>
-          </div>
-        </div>
-
-        {/* Audio Level Indicator */}
-        {callState.hasPermission && (
-          <div className="px-6 py-4 bg-gray-50">
-            <div className="flex items-center gap-3">
-              <div className="text-sm font-medium text-gray-700">Your Voice</div>
-              <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-100 ease-out"
-                  style={{ width: `${callState.audioLevel}%` }}
-                />
-              </div>
-              <div className="text-xs text-gray-500 w-8 text-right">
-                {Math.round(callState.audioLevel)}%
-              </div>
+            <div className="flex items-center gap-2 text-green-600">
+              <Clock className="w-4 h-4" />
+              <span className="font-mono">{formatDuration(callState.callDuration)}</span>
             </div>
+            {callState.isListening && (
+              <div className="flex items-center gap-2 text-green-600">
+                <Mic className="w-4 h-4" />
+                <span>Listening...</span>
+              </div>
+            )}
+            {callState.isSpeaking && (
+              <div className="flex items-center gap-2 text-blue-600">
+                <Volume2 className="w-4 h-4" />
+                <span>Speaking...</span>
+              </div>
+            )}
           </div>
         )}
-
-        {/* Call Controls */}
-        <div className="p-6">
-          <div className="grid grid-cols-3 gap-4">
-            {/* Mute Button */}
-            <button
-              onClick={toggleMute}
-              className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all duration-200 ${
-                callState.isMuted 
-                  ? 'bg-red-50 text-red-600 border-2 border-red-200' 
-                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-gray-200'
-              }`}
-            >
-              {callState.isMuted ? (
-                <VolumeX className="w-6 h-6" />
-              ) : (
-                <Volume2 className="w-6 h-6" />
-              )}
-              <span className="text-xs font-medium">
-                {callState.isMuted ? 'Unmute' : 'Mute'}
-              </span>
-            </button>
-
-            {/* Main Call Button */}
-            <button
-              onClick={callState.isConnected ? endCall : startCall}
-              className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all duration-200 ${
-                callState.isConnected
-                  ? 'bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100'
-                  : 'bg-green-50 text-green-600 border-2 border-green-200 hover:bg-green-100'
-              }`}
-            >
-              {callState.isConnected ? (
-                <PhoneOff className="w-6 h-6" />
-              ) : (
-                <Phone className="w-6 h-6" />
-              )}
-              <span className="text-xs font-medium">
-                {callState.isConnected ? 'End Call' : 'Start Call'}
-              </span>
-            </button>
-
-            {/* Settings Button */}
-            <button
-              onClick={() => setShowShortcuts(!showShortcuts)}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-gray-200 transition-all duration-200"
-            >
-              <Settings className="w-6 h-6" />
-              <span className="text-xs font-medium">Settings</span>
-            </button>
-          </div>
-
-          {/* Status Indicators */}
-          <div className="mt-6 space-y-3">
-            {callState.isListening && (
-              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-                <span className="text-sm text-blue-700 font-medium">Listening...</span>
-              </div>
-            )}
-            
-            {callState.isSpeaking && (
-              <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" />
-                <span className="text-sm text-green-700 font-medium">{persona.name} is speaking...</span>
-              </div>
-            )}
-
-            {callState.error && (
-              <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
-                <AlertCircle className="w-4 h-4 text-red-600" />
-                <span className="text-sm text-red-700">{callState.error}</span>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
-      {/* Conversation Display */}
-      <div className="bg-gray-50 rounded-lg p-3 sm:p-4 h-64 sm:h-96 overflow-y-auto" data-conversation="display">
-        <div className="space-y-3 sm:space-y-4">
-          {conversation.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.speaker === 'agent' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[80%] sm:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 rounded-lg ${
-                  message.speaker === 'agent'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-800 border border-gray-200'
-                }`}
-              >
-                <div className="text-xs sm:text-sm font-medium mb-1">
-                  {message.speaker === 'agent' ? 'You' : persona.name}
-                </div>
-                <div className="text-xs sm:text-sm">{message.content}</div>
-                <div className="text-xs opacity-70 mt-1">
-                  {message.timestamp.toLocaleTimeString()}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Voice Call Interface */}
+      {callState.showCallInterface && (
+        <VoiceCallInterface
+          persona={persona}
+          isConnected={callState.isConnected}
+          isListening={callState.isListening}
+          isSpeaking={callState.isSpeaking}
+          isMuted={callState.isMuted}
+          audioLevel={callState.audioLevel}
+          callDuration={callState.callDuration}
+          error={callState.error}
+          onStartCall={startCall}
+          onEndCall={endCall}
+          onToggleMute={toggleMute}
+          onClose={closeCallInterface}
+        />
+      )}
 
       {/* Text Input Fallback */}
-      <form onSubmit={handleTextSubmit} className="flex gap-2">
-        <input
-          type="text"
-          value={currentInput}
-          onChange={(e) => setCurrentInput(e.target.value)}
-          placeholder="Type your response here..."
-          className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-gray-900 bg-white placeholder-gray-500"
-          disabled={isLoading}
-        />
-        <Button
-          type="submit"
-          disabled={!currentInput.trim() || isLoading}
-          loading={isLoading}
-          icon={<Send className="w-4 h-4" />}
-        >
-          Send
-        </Button>
-      </form>
-
-      {/* Session Controls */}
-      <div className="flex items-center justify-center gap-4" data-session="controls">
-        <Button
-          onClick={resetSession}
-          variant="outline"
-          icon={<RotateCcw className="w-4 h-4" />}
-        >
-          Reset Session
-        </Button>
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Text Conversation (Fallback)</h3>
         
-        <Button
-          onClick={exportConversation}
-          variant="outline"
-          icon={<Download className="w-4 h-4" />}
-          disabled={conversation.length === 0}
-        >
-          Export
-        </Button>
-        
-        <Button
-          onClick={() => setShowShortcuts(!showShortcuts)}
-          variant="ghost"
-          icon={<Keyboard className="w-4 h-4" />}
-        >
-          Shortcuts
-        </Button>
+        <form onSubmit={handleTextSubmit} className="flex gap-3">
+          <input
+            type="text"
+            value={currentInput}
+            onChange={(e) => setCurrentInput(e.target.value)}
+            placeholder="Type your response..."
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-500"
+            disabled={isLoading}
+          />
+          <button
+            type="submit"
+            disabled={!currentInput.trim() || isLoading}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg transition-colors flex items-center gap-2"
+          >
+            {isLoading ? <LoadingSpinner size="sm" /> : <Send className="w-4 h-4" />}
+            Send
+          </button>
+        </form>
       </div>
 
-      {/* Keyboard Shortcuts Help */}
-      {showShortcuts && (
-        <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg p-4 shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <Keyboard className="w-4 h-4" />
-              Keyboard Shortcuts
-            </h3>
+      {/* Conversation History */}
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Conversation History</h3>
+          <div className="flex gap-2">
             <button
-              onClick={() => setShowShortcuts(false)}
-              className="text-gray-400 hover:text-gray-600"
+              onClick={resetSession}
+              className="text-gray-500 hover:text-gray-700 flex items-center gap-1"
             >
-              ×
+              <RotateCcw className="w-4 h-4" />
+              Reset
+            </button>
+            <button
+              onClick={exportConversation}
+              className="text-gray-500 hover:text-gray-700 flex items-center gap-1"
+            >
+              <Download className="w-4 h-4" />
+              Export
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Reset Session:</span>
-              <kbd className="px-2 py-1 bg-gray-100 rounded text-gray-700">Ctrl+R</kbd>
+        </div>
+
+        <div className="space-y-4 max-h-96 overflow-y-auto">
+          {conversation.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">
+              {callState.isConnected 
+                ? "Start talking to begin the conversation..." 
+                : "Click 'Start Voice Call' or type a message to begin..."
+              }
+            </p>
+          ) : (
+            conversation.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.speaker === 'agent' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    message.speaker === 'agent'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-900'
+                  }`}
+                >
+                  <p className="text-sm">{message.content}</p>
+                  <p className="text-xs opacity-70 mt-1">
+                    {message.timestamp.toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Keyboard Shortcuts */}
+      {showShortcuts && (
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Keyboard Shortcuts</h3>
+          <div className="grid md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p><strong>Space</strong> - Hold to talk (when call is active)</p>
+              <p><strong>M</strong> - Toggle mute</p>
+              <p><strong>Escape</strong> - End call</p>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Export Conversation:</span>
-              <kbd className="px-2 py-1 bg-gray-100 rounded text-gray-700">Ctrl+S</kbd>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Show Help:</span>
-              <kbd className="px-2 py-1 bg-gray-100 rounded text-gray-700">?</kbd>
+            <div>
+              <p><strong>Enter</strong> - Send text message</p>
+              <p><strong>R</strong> - Reset session</p>
+              <p><strong>H</strong> - Toggle shortcuts</p>
             </div>
           </div>
         </div>
       )}
-
-      {/* Session Info */}
-      <div className="text-center text-sm text-gray-600" data-session="info">
-        <p>Training with {persona.name} - {persona.type}</p>
-        <p>Session duration: {Math.floor(sessionStats.duration / 60)}:{(sessionStats.duration % 60).toString().padStart(2, '0')}</p>
-      </div>
     </div>
   );
 } 

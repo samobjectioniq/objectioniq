@@ -24,15 +24,8 @@ const createAnthropicClient = () => {
 };
 
 interface ChatRequest {
-  persona: {
-    id: string;
-    name: string;
-    age: number;
-    type: string;
-    characteristics: string[];
-    description: string;
-  };
-  agentResponse: string;
+  message: string;
+  personaId: string;
   conversationHistory: Array<{
     speaker: string;
     content: string;
@@ -151,6 +144,52 @@ Common objections:
 Respond naturally as Robert, showing loyalty and skepticism. Keep responses measured and questioning.`
 };
 
+// Persona metadata for backward compatibility
+const personaMetadata: Record<string, { name: string; age: number; type: string; characteristics: string[]; description: string }> = {
+  'skeptical-shopper': {
+    name: 'Skeptical Shopper',
+    age: 32,
+    type: 'Price-focused internet shopper',
+    characteristics: ['Price-conscious', 'Not serious about buying', 'Comparison shopper'],
+    description: 'Just comparing prices online, not really serious about buying'
+  },
+  'busy-professional': {
+    name: 'Busy Professional',
+    age: 28,
+    type: 'Time-pressed professional',
+    characteristics: ['Time-pressed', 'Direct', 'Impatient'],
+    description: 'Interrupted by the call and wants to get to the point quickly'
+  },
+  'price-hunter': {
+    name: 'Price Hunter',
+    age: 45,
+    type: 'Cost-focused bargain hunter',
+    characteristics: ['Price-obsessed', 'Comparison-driven', 'Value-blind'],
+    description: 'Only cares about cost and demands the lowest price'
+  },
+  sarah: {
+    name: 'Sarah',
+    age: 28,
+    type: 'Young professional',
+    characteristics: ['Price-conscious', 'Time-pressed', 'Skeptical'],
+    description: 'Price-sensitive tech professional with a busy lifestyle'
+  },
+  'mike-jennifer': {
+    name: 'Mike & Jennifer',
+    age: 35,
+    type: 'Family couple',
+    characteristics: ['Family-focused', 'Safety-conscious', 'Detail-oriented'],
+    description: 'Couple with young children seeking comprehensive family coverage'
+  },
+  robert: {
+    name: 'Robert',
+    age: 67,
+    type: 'Retiree',
+    characteristics: ['Loyal', 'Suspicious of change', 'Values relationships'],
+    description: 'Retiree loyal to current provider for 15 years'
+  }
+};
+
 // Enhanced fallback responses for when Claude API is unavailable
 const fallbackResponses: Record<string, string[]> = {
   'skeptical-shopper': [
@@ -209,8 +248,8 @@ const logRequest = (request: NextRequest, body: any) => {
     timestamp: new Date().toISOString(),
     method: request.method,
     url: request.url,
-    persona: body.persona?.id,
-    agentResponseLength: body.agentResponse?.length,
+    personaId: body.personaId,
+    messageLength: body.message?.length,
     conversationHistoryLength: body.conversationHistory?.length,
     userAgent: request.headers.get('user-agent'),
     origin: request.headers.get('origin'),
@@ -242,7 +281,7 @@ const logError = (error: any, context: string) => {
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  let persona: ChatRequest['persona'] | undefined;
+  let personaId: string | undefined;
   
   try {
     // Log incoming request
@@ -250,50 +289,53 @@ export async function POST(request: NextRequest) {
     logRequest(request, body);
     
     // Validate request body
-    if (!body.persona || !body.agentResponse) {
-      const error = { error: 'Missing required fields: persona and agentResponse' };
+    if (!body.personaId || !body.message) {
+      const error = { error: 'Missing required fields: personaId and message' };
       logResponse(error, Date.now() - startTime);
       return NextResponse.json(error, { status: 400 });
     }
     
-    persona = body.persona;
-    const { agentResponse, conversationHistory = [] } = body;
+    personaId = body.personaId;
+    const { message, conversationHistory = [] } = body;
 
     // Validate persona
-    if (!personaPrompts[persona.id]) {
-      const error = { error: `Invalid persona: ${persona.id}` };
+    if (!personaPrompts[personaId]) {
+      const error = { error: `Invalid persona: ${personaId}` };
       logResponse(error, Date.now() - startTime);
       return NextResponse.json(error, { status: 400 });
     }
+
+    // Get persona metadata
+    const persona = personaMetadata[personaId];
 
     // Create Anthropic client
     const anthropic = createAnthropicClient();
     if (!anthropic) {
       console.warn('⚠️ Using fallback responses - Anthropic client not available');
-      const fallbackResponse = getRandomFallbackResponse(persona.id);
+      const fallbackResponse = getRandomFallbackResponse(personaId);
       const response = { response: fallbackResponse, fallback: true };
       logResponse(response, Date.now() - startTime);
       return NextResponse.json(response);
     }
 
     // Build enhanced system prompt
-    const systemPrompt = `${personaPrompts[persona.id]}
+    const systemPrompt = `${personaPrompts[personaId]}
 
 IMPORTANT: Respond as ${persona.name} in a natural, conversational way. Use contractions and sound like a real person. Keep responses short (1-2 sentences maximum). Stay in character and make objections realistic for your persona. Do not break character or mention that you are an AI.`;
 
     // Build user prompt with conversation context
     const conversationContext = conversationHistory.length > 0 
       ? `\nPrevious conversation:\n${conversationHistory.map((msg: any) => 
-          `${msg.speaker === 'agent' ? 'Agent' : persona!.name}: ${msg.content}`
+          `${msg.speaker === 'agent' ? 'Agent' : persona.name}: ${msg.content}`
         ).join('\n')}\n`
       : '';
 
-    const userPrompt = `${conversationContext}Agent's latest message: "${agentResponse}"
+    const userPrompt = `${conversationContext}Agent's latest message: "${message}"
 
-Respond as ${persona!.name}:`;
+Respond as ${persona.name}:`;
 
     // Make API call with enhanced configuration
-    const message = await anthropic.messages.create({
+    const apiResponse = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 150,
       temperature: 0.7,
@@ -307,7 +349,7 @@ Respond as ${persona!.name}:`;
     });
 
     // Extract response
-    const response = message.content[0].type === 'text' ? message.content[0].text : '';
+    const response = apiResponse.content[0].type === 'text' ? apiResponse.content[0].text : '';
     
     if (!response || response.trim().length === 0) {
       throw new Error('Empty response from Claude API');
@@ -367,8 +409,8 @@ Respond as ${persona!.name}:`;
     }
     
     // Use fallback response for any other errors
-    const fallbackResponse = persona && persona.id 
-      ? getRandomFallbackResponse(persona.id)
+    const fallbackResponse = personaId 
+      ? getRandomFallbackResponse(personaId)
       : "I need to think about this. Can you send me some information?";
     
     const result = { 

@@ -92,6 +92,15 @@ export default function OnboardingTutorial({ isOpen, onClose, onComplete }: Onbo
     onComplete();
   };
 
+  const handleDontShowAgain = () => {
+    // Save to localStorage
+    localStorage.setItem('objectioniq_tutorial_completed', 'true');
+    if (user) {
+      localStorage.setItem(`objectioniq_tutorial_completed_${user.id}`, 'true');
+    }
+    onComplete();
+  };
+
   if (!isVisible) return null;
 
   const step = onboardingSteps[currentStep];
@@ -157,13 +166,21 @@ export default function OnboardingTutorial({ isOpen, onClose, onComplete }: Onbo
             </button>
           </div>
 
-          {/* Skip option */}
-          <button
-            onClick={handleSkip}
-            className="mt-4 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            Skip tutorial
-          </button>
+          {/* Skip options */}
+          <div className="mt-4 space-y-2">
+            <button
+              onClick={handleSkip}
+              className="block w-full text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Skip tutorial
+            </button>
+            <button
+              onClick={handleDontShowAgain}
+              className="block w-full text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Don&apos;t show again
+            </button>
+          </div>
         </div>
       </div>
     </div>

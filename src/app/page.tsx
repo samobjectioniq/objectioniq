@@ -25,9 +25,14 @@ export default function Home() {
   // Check if user is new and show onboarding
   useEffect(() => {
     if (user) {
-      // For now, show onboarding for all users
-      // In production, this would check user.onboarding_completed from database
-      setShowOnboarding(true);
+      // Check if tutorial has been completed
+      const tutorialCompleted = localStorage.getItem('objectioniq_tutorial_completed') === 'true' ||
+                               localStorage.getItem(`objectioniq_tutorial_completed_${user.id}`) === 'true';
+      
+      // Only show onboarding if tutorial hasn't been completed
+      if (!tutorialCompleted) {
+        setShowOnboarding(true);
+      }
     }
   }, [user]);
 
@@ -566,45 +571,25 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <h3 className="text-xl font-bold text-blue-400 mb-4">ObjectionIQ</h3>
-              <p className="text-gray-400 text-sm">
+              <h3 className="text-lg font-semibold mb-4">ObjectionIQ</h3>
+              <p className="text-gray-400 mb-4">
                 Professional training platform for insurance agents to improve objection handling skills and conversion rates.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Training</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#roi" className="hover:text-white transition-colors">ROI Calculator</a></li>
-                <li><a href="#personas" className="hover:text-white transition-colors">Customer Scenarios</a></li>
-                <li><a href="/dashboard" className="hover:text-white transition-colors">Performance Analytics</a></li>
-                <li><a href="/training" className="hover:text-white transition-colors">Practice Sessions</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Training Guide</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Support</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Newsletter</a></li>
+              <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+              <ul className="space-y-2">
+                <li><a href="/training" className="text-gray-400 hover:text-white transition-colors">Training</a></li>
+                <li><a href="/dashboard" className="text-gray-400 hover:text-white transition-colors">Dashboard</a></li>
+                <li><button onClick={() => handleAuthClick('signin')} className="text-gray-400 hover:text-white transition-colors">Login</button></li>
+                <li><button onClick={() => handleAuthClick('signup')} className="text-gray-400 hover:text-white transition-colors">Sign Up</button></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-            <p className="text-gray-400 text-sm">
-              © 2025 ObjectionIQ. All rights reserved. Professional training platform for insurance professionals.
-            </p>
+            <p className="text-gray-400">&copy; 2024 ObjectionIQ. All rights reserved.</p>
           </div>
         </div>
       </footer>
