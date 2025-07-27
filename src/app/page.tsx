@@ -577,6 +577,9 @@ export default function Home() {
               <p className="text-gray-400 mb-4">
                 Professional training platform for insurance agents to improve objection handling skills and conversion rates.
               </p>
+              <p className="text-gray-400">
+                Contact: <a href="mailto:info@objectioniq.com" className="text-blue-400 hover:text-blue-300 transition-colors">info@objectioniq.com</a>
+              </p>
             </div>
             <div>
               <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
