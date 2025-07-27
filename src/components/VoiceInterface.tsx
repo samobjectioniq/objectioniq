@@ -110,7 +110,7 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
     }
   }, []);
 
-  const handleAgentResponse = async (transcript: string) => {
+  const handleAgentResponse = useCallback(async (transcript: string) => {
     const agentMessage: ConversationMessage = {
       id: Date.now().toString(),
       speaker: 'agent',
@@ -126,7 +126,7 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
 
     // Generate AI customer response
     await generateCustomerResponse(transcript);
-  };
+  }, []);
 
   // Initialize speech recognition
   const initializeSpeechRecognition = useCallback(() => {

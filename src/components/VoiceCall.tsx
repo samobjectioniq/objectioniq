@@ -116,7 +116,14 @@ export default function VoiceCall({ persona, onAgentResponse, onCustomerResponse
         setCallState(prev => ({ ...prev, isListening: false }));
         setTimeout(() => {
           if (callState.isConnected && !callState.isSpeaking) {
-            startListening();
+            // Use a direct call instead of the function reference
+            if (recognitionRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch (error) {
+                console.error('Error starting speech recognition:', error);
+              }
+            }
           }
         }, 1000);
         return;
@@ -135,7 +142,14 @@ export default function VoiceCall({ persona, onAgentResponse, onCustomerResponse
       if (callState.isConnected && !callState.isSpeaking) {
         setTimeout(() => {
           if (callState.isConnected && !callState.isSpeaking) {
-            startListening();
+            // Use a direct call instead of the function reference
+            if (recognitionRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch (error) {
+                console.error('Error starting speech recognition:', error);
+              }
+            }
           }
         }, 1000);
       }
@@ -259,7 +273,7 @@ export default function VoiceCall({ persona, onAgentResponse, onCustomerResponse
       
       synthesisRef.current.speak(utterance);
     }
-  }, [persona.id, callState.isMuted, callState.isConnected, initializeSpeechSynthesis, stopListening, startListening]);
+  }, [persona.id, callState.isMuted, callState.isConnected, initializeSpeechSynthesis, stopListening]);
 
   // Start call
   const startCall = useCallback(async () => {

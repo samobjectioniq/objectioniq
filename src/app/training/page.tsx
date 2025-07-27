@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { ArrowLeft, Clock, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +8,40 @@ import { useSearchParams } from 'next/navigation';
 import VoiceInterface from '@/components/VoiceInterface';
 import { Persona } from '@/types/persona';
 
-export default function TrainingPage() {
+const personas: Persona[] = [
+  {
+    id: 'sarah',
+    name: 'Sarah Mitchell',
+    age: 28,
+    type: 'Young Professional',
+    description: 'Price-conscious tech worker who wants quick solutions',
+    characteristics: ['Price-conscious', 'Time-pressed', 'Skeptical'],
+    color: 'blue',
+    avatar: 'SM'
+  },
+  {
+    id: 'robert',
+    name: 'Robert Chen',
+    age: 45,
+    type: 'Small Business Owner',
+    description: 'Detail-oriented entrepreneur who values relationships',
+    characteristics: ['Detail-oriented', 'Risk-averse', 'Relationship-focused'],
+    color: 'green',
+    avatar: 'RC'
+  },
+  {
+    id: 'linda',
+    name: 'Linda Rodriguez',
+    age: 32,
+    type: 'Budget-Conscious Teacher',
+    description: 'Family-focused educator on a tight budget',
+    characteristics: ['Budget-focused', 'Family-oriented', 'Value-conscious'],
+    color: 'purple',
+    avatar: 'LR'
+  }
+];
+
+function TrainingContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
@@ -19,39 +52,6 @@ export default function TrainingPage() {
     responsesCount: 0,
     confidenceScore: 0
   });
-
-  const personas: Persona[] = [
-    {
-      id: 'sarah',
-      name: 'Sarah Mitchell',
-      age: 28,
-      type: 'Young Professional',
-      description: 'Price-conscious tech worker who wants quick solutions',
-      characteristics: ['Price-conscious', 'Time-pressed', 'Skeptical'],
-      color: 'blue',
-      avatar: 'SM'
-    },
-    {
-      id: 'robert',
-      name: 'Robert Chen',
-      age: 45,
-      type: 'Small Business Owner',
-      description: 'Detail-oriented entrepreneur who values relationships',
-      characteristics: ['Detail-oriented', 'Risk-averse', 'Relationship-focused'],
-      color: 'green',
-      avatar: 'RC'
-    },
-    {
-      id: 'linda',
-      name: 'Linda Rodriguez',
-      age: 32,
-      type: 'Budget-Conscious Teacher',
-      description: 'Family-focused educator on a tight budget',
-      characteristics: ['Budget-focused', 'Family-oriented', 'Value-conscious'],
-      color: 'purple',
-      avatar: 'LR'
-    }
-  ];
 
   useEffect(() => {
     const personaId = searchParams.get('persona');
@@ -155,5 +155,20 @@ export default function TrainingPage() {
         onConversationUpdate={handleConversationUpdate}
       />
     </div>
+  );
+}
+
+export default function TrainingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading practice session...</p>
+        </div>
+      </div>
+    }>
+      <TrainingContent />
+    </Suspense>
   );
 } 
