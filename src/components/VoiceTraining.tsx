@@ -46,7 +46,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
     }
 
     recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.continuous = false;
+    recognitionRef.current.continuous = false; // Keep false for better control
     recognitionRef.current.interimResults = true; // Enable interim results for better feedback
     recognitionRef.current.lang = 'en-US';
 
@@ -82,15 +82,33 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
         setError('Speech recognition error: ' + event.error);
       }
       setIsListening(false);
+      
+      // Restart listening after error (except for no-speech)
+      if (event.error !== 'no-speech' && isCallActive) {
+        setTimeout(() => {
+          if (recognitionRef.current && isCallActive) {
+            recognitionRef.current.start();
+          }
+        }, 1000);
+      }
     };
 
     recognitionRef.current.onend = () => {
       setIsListening(false);
       console.log('🎤 Speech recognition ended');
+      
+      // Automatically restart listening if call is still active
+      if (isCallActive && !isSpeaking) {
+        setTimeout(() => {
+          if (recognitionRef.current && isCallActive && !isSpeaking) {
+            recognitionRef.current.start();
+          }
+        }, 500);
+      }
     };
 
     return true;
-  }, []);
+  }, [isCallActive, isSpeaking]);
 
   // Initialize audio analysis for visual feedback
   const initializeAudioAnalysis = useCallback(async () => {
@@ -198,6 +216,15 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
       audio.onended = () => {
         setIsSpeaking(false);
         URL.revokeObjectURL(audioUrl);
+        
+        // Restart listening after Sarah finishes speaking
+        if (isCallActive && recognitionRef.current) {
+          setTimeout(() => {
+            if (isCallActive && recognitionRef.current) {
+              recognitionRef.current.start();
+            }
+          }, 500);
+        }
       };
       
       await audio.play();
@@ -207,13 +234,24 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
       // Fallback to browser TTS
       if (synthesisRef.current) {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.onend = () => setIsSpeaking(false);
+        utterance.onend = () => {
+          setIsSpeaking(false);
+          
+          // Restart listening after Sarah finishes speaking
+          if (isCallActive && recognitionRef.current) {
+            setTimeout(() => {
+              if (isCallActive && recognitionRef.current) {
+                recognitionRef.current.start();
+              }
+            }, 500);
+          }
+        };
         synthesisRef.current.speak(utterance);
       } else {
         setIsSpeaking(false);
       }
     }
-  }, [persona.id]);
+  }, [persona.id, isCallActive]);
 
   // Start the call
   const startCall = async () => {
@@ -250,6 +288,13 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
       timestamp: new Date()
     };
     setConversation([greetingMessage]);
+
+    // Automatically start listening after greeting
+    setTimeout(() => {
+      if (recognitionRef.current) {
+        recognitionRef.current.start();
+      }
+    }, 1000); // Wait 1 second after greeting to start listening
   };
 
   // End the call
@@ -459,19 +504,6 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
               {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
             </button>
 
-            {/* Main Microphone Button */}
-            <button
-              onClick={toggleMicrophone}
-              disabled={isSpeaking}
-              className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
-                isListening 
-                  ? 'bg-red-600 text-white scale-110' 
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              } ${isSpeaking ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {isListening ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-            </button>
-
             {/* End Call Button */}
             <button
               onClick={endCall}
@@ -521,8 +553,8 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
           {/* Instructions */}
           <div className="text-center text-gray-500 text-sm">
             {isSpeaking ? "AI customer is speaking..." : 
-             isListening ? "Speak now..." : 
-             "Tap microphone to speak"}
+             isListening ? "Speak naturally..." : 
+             "Call in progress..."}
           </div>
         </div>
       </div>
