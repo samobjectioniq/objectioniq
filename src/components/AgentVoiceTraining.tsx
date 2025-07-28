@@ -205,8 +205,12 @@ export default function AgentVoiceTraining({ persona, onEndCall }: AgentVoiceTra
         }),
       });
 
+      console.log('🤖 Agent session response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to create agent session');
+        const errorData = await response.json();
+        console.error('❌ Agent session creation failed:', errorData);
+        throw new Error(errorData.details || errorData.error || 'Failed to create agent session');
       }
 
       const data = await response.json();
@@ -214,11 +218,12 @@ export default function AgentVoiceTraining({ persona, onEndCall }: AgentVoiceTra
       console.log('🤖 Agent session created:', data.sessionId);
 
       // Get initial greeting from agent
-      await sendMessageToAgent('Hello, I\'m calling about the insurance quote you requested.');
+      await sendMessageToAgentRef.current?.('Hello, I\'m calling about the insurance quote you requested.');
 
     } catch (error) {
       console.error('Agent session creation error:', error);
-      setError('Failed to connect to agent');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect to agent';
+      setError(errorMessage);
     }
   };
 

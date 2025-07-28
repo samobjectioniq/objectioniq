@@ -57,10 +57,30 @@ export async function POST(request: NextRequest) {
 async function createAgentSession() {
   try {
     console.log('🤖 Creating agent session...');
+    console.log('🤖 Environment check:', {
+      hasApiKey: !!ELEVENLABS_API_KEY,
+      apiKeyLength: ELEVENLABS_API_KEY?.length || 0,
+      apiKeyPreview: ELEVENLABS_API_KEY?.substring(0, 10) + '...' || 'None',
+      hasAgentId: !!ELEVENLABS_AGENT_ID_SARAH,
+      agentId: ELEVENLABS_AGENT_ID_SARAH
+    });
     
     if (!ELEVENLABS_API_KEY) {
       throw new Error('ElevenLabs API key not configured');
     }
+
+    if (!ELEVENLABS_AGENT_ID_SARAH) {
+      throw new Error('ElevenLabs Agent ID not configured');
+    }
+    
+    const requestBody = {
+      agent_id: ELEVENLABS_AGENT_ID_SARAH,
+      name: 'ObjectionIQ Training Session',
+      description: 'Insurance objection handling practice session'
+    };
+
+    console.log('🤖 Request body:', requestBody);
+    console.log('🤖 Making request to:', `${ELEVENLABS_BASE_URL}/conversation`);
     
     const response = await fetch(`${ELEVENLABS_BASE_URL}/conversation`, {
       method: 'POST',
@@ -68,26 +88,27 @@ async function createAgentSession() {
         'Content-Type': 'application/json',
         'xi-api-key': ELEVENLABS_API_KEY,
       },
-      body: JSON.stringify({
-        agent_id: ELEVENLABS_AGENT_ID_SARAH,
-        name: 'ObjectionIQ Training Session',
-        description: 'Insurance objection handling practice session'
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     console.log('🤖 Agent session response status:', response.status);
+    console.log('🤖 Response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ Agent session creation failed:', response.status, errorText);
       return NextResponse.json(
-        { error: 'Failed to create agent session' },
+        { 
+          error: 'Failed to create agent session',
+          details: errorText,
+          status: response.status
+        },
         { status: response.status }
       );
     }
 
     const sessionData = await response.json();
-    console.log('🤖 Agent session created:', sessionData.id);
+    console.log('🤖 Agent session created successfully:', sessionData);
 
     return NextResponse.json({
       sessionId: sessionData.id,
@@ -98,7 +119,10 @@ async function createAgentSession() {
   } catch (error) {
     console.error('❌ Agent session creation error:', error);
     return NextResponse.json(
-      { error: 'Failed to create agent session' },
+      { 
+        error: 'Failed to create agent session',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
