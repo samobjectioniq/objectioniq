@@ -387,13 +387,24 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
       console.log('👋 Playing initial greeting...');
       const greeting = getPersonaGreeting(persona);
       console.log('Greeting text:', greeting);
-      speakText(greeting);
+      
+      // Play greeting and then start listening
+      await speakText(greeting);
+      
+      // Start listening after greeting (with delay to ensure greeting finishes)
+      setTimeout(() => {
+        if (callState.isConnected && !callState.isSpeaking) {
+          console.log('🎧 Starting speech recognition after greeting...');
+          startListening();
+        }
+      }, 2000); // Wait 2 seconds for greeting to finish
+      
     } catch (error) {
       console.error('❌ Error starting call:', error);
       showError('Call Failed', 'Unable to start call. Please check your microphone permissions.');
       await playError();
     }
-  }, [persona, initializeAudioAnalysis, initializeSpeechRecognition, initializeSpeechSynthesis, speakText, showSuccess, showError]);
+  }, [persona, initializeAudioAnalysis, initializeSpeechRecognition, initializeSpeechSynthesis, speakText, startListening, callState.isConnected, callState.isSpeaking, showSuccess, showError]);
 
   // End call
   const endCall = useCallback(async () => {
@@ -647,6 +658,56 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
           onToggleMute={toggleMute}
           onClose={closeCallInterface}
         />
+      )}
+
+      {/* Debug Controls - Only show in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <h3 className="text-lg font-semibold text-yellow-800 mb-3">🔧 Debug Controls</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => {
+                console.log('🔧 Manual start listening');
+                startListening();
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+            >
+              Start Listening
+            </button>
+            <button
+              onClick={() => {
+                console.log('🔧 Manual stop listening');
+                stopListening();
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
+            >
+              Stop Listening
+            </button>
+            <button
+              onClick={() => {
+                console.log('🔧 Test speech synthesis');
+                speakText('This is a test of the speech synthesis system.');
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm"
+            >
+              Test Speech
+            </button>
+            <button
+              onClick={() => {
+                console.log('🔧 Test API call');
+                generateCustomerResponse('Hello, this is a test message.');
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm"
+            >
+              Test API
+            </button>
+          </div>
+          <div className="mt-3 text-sm text-yellow-700">
+            <p><strong>Status:</strong> {callState.isConnected ? 'Connected' : 'Disconnected'} | {callState.isListening ? 'Listening' : 'Not Listening'} | {callState.isSpeaking ? 'Speaking' : 'Not Speaking'}</p>
+            <p><strong>Error:</strong> {callState.error || 'None'}</p>
+            <p><strong>Audio Level:</strong> {callState.audioLevel.toFixed(1)}%</p>
+          </div>
+        </div>
       )}
 
       {/* Text Input Fallback */}

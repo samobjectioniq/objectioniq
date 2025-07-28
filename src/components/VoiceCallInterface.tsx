@@ -18,6 +18,7 @@ interface VoiceCallInterfaceProps {
   onEndCall: () => void;
   onToggleMute: () => void;
   onClose: () => void;
+  onStartListening?: () => void; // Add manual listening control
 }
 
 export default function VoiceCallInterface({
