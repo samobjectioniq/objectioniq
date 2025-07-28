@@ -273,10 +273,10 @@ export default function ROICalculator() {
 
                 <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-purple-700">Lead Waste Reduction</span>
-                    <span className="text-lg font-bold text-purple-600">-{results.wastedLeads}</span>
+                    <span className="text-sm font-medium text-purple-700">Cost Per Sale Savings</span>
+                    <span className="text-lg font-bold text-purple-600">-${results.costPerSaleSavings.toFixed(0)}</span>
                   </div>
-                  <div className="text-xs text-purple-600">wasted leads per month</div>
+                  <div className="text-xs text-purple-600">per sale with better objection handling</div>
                 </div>
               </div>
 
@@ -294,7 +294,7 @@ export default function ROICalculator() {
                   </div>
                 </div>
                 <div className="mt-4 text-center">
-                  <div className="text-green-100 text-sm">If ObjectionIQ helps you improve from {roiData.currentConversion}% to {roiData.improvedConversion}% close rate, that&apos;s {Math.round(((roiData.improvedConversion - roiData.currentConversion) / roiData.currentConversion) * 100)}% more sales = ${results.revenueIncrease.toLocaleString()} additional commission monthly</div>
+                  <div className="text-green-100 text-sm">Better objection handling improves your close rate from {roiData.currentConversion}% to {roiData.improvedConversion}%, creating {Math.round(((roiData.improvedConversion - roiData.currentConversion) / roiData.currentConversion) * 100)}% more sales and ${results.revenueIncrease.toLocaleString()} additional monthly revenue</div>
                 </div>
               </div>
 
