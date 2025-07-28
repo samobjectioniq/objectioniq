@@ -1,71 +1,172 @@
-# ElevenLabs Voice API Setup Guide
+# ElevenLabs Voice AI Setup for ObjectionIQ
 
-## 🎙️ High-Quality AI Voices for ObjectionIQ
+## 🎙️ Complete Voice Training Implementation
 
-ElevenLabs provides natural, human-like voices that are perfect for AI customer personas. This replaces the robotic browser speech synthesis with professional-quality voices.
+ObjectionIQ now features a comprehensive voice training system with real speech recognition and ElevenLabs AI voice synthesis.
 
-## 🚀 Quick Setup
+## 🔧 Environment Variables
 
-### 1. Get ElevenLabs API Key
-1. Go to [ElevenLabs.io](https://elevenlabs.io)
-2. Sign up for a free account
-3. Navigate to your profile → API Key
-4. Copy your API key
+Add these to your `.env.local` file:
 
-### 2. Add Environment Variable
-Add this to your `.env.local` file:
-```
-NEXT_PUBLIC_ELEVENLABS_API_KEY=your_api_key_here
+```bash
+# ElevenLabs API Key (Server-side)
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+
+# Anthropic Claude API Key
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
-### 3. Deploy to Vercel
-Add the environment variable in Vercel:
-1. Go to your Vercel project dashboard
-2. Settings → Environment Variables
-3. Add `NEXT_PUBLIC_ELEVENLABS_API_KEY` with your API key
-4. Redeploy
+## 🚀 Features Implemented
 
-## 🎯 Voice Personas
+### 1. Real Speech Recognition
+- **Web Speech API** integration
+- **Microphone permissions** handling
+- **Visual feedback** during listening
+- **Error handling** for unsupported browsers
 
-The app uses these ElevenLabs voices:
+### 2. ElevenLabs Voice Synthesis
+- **Professional AI voices** for each persona
+- **Persona-specific voice settings**
+- **Streaming audio** generation
+- **Fallback to browser TTS** if needed
 
-- **Sarah (Young Professional)**: Rachel - young, professional female voice
-- **Robert (Business Owner)**: Domi - mature, authoritative male voice  
-- **Linda (Teacher)**: Bella - warm, friendly female voice
+### 3. iPhone-Style Call Interface
+- **Full-screen call layout**
+- **Large customer avatar**
+- **Call timer** and status indicators
+- **Microphone button** with visual feedback
+- **Audio level indicators**
+- **Mute/unmute controls**
 
-## 💰 Pricing
+### 4. Natural Conversation Flow
+- **AI speaks first** with persona-specific greeting
+- **User speaks** → **Speech to text** → **Claude API** → **ElevenLabs speech**
+- **Real-time conversation** loop
+- **Conversation history** tracking
 
-- **Free Tier**: 10,000 characters/month
-- **Paid Plans**: Start at $22/month for 30,000 characters
-- **Pay-as-you-go**: $0.30 per 1,000 characters
+## 🎭 Voice Personas
 
-## 🔧 Fallback System
+### Sarah Mitchell (Young Professional)
+- **Voice ID**: `21m00Tcm4TlvDq8ikWAM` (Rachel)
+- **Style**: Young, professional, confident
+- **Greeting**: "Hi, this is Sarah. I'm calling about the insurance quote you requested..."
 
-If ElevenLabs is unavailable or quota is exceeded:
-- Automatically falls back to browser TTS
-- No interruption to user experience
-- Graceful degradation
+### Robert Chen (Small Business Owner)
+- **Voice ID**: `AZnzlk1XvdvUeBnXmlld` (Domi)
+- **Style**: Mature, authoritative, business-focused
+- **Greeting**: "Hello, this is Robert Chen. I received your request for insurance information..."
 
-## 🎨 Custom Voices
+### Linda Rodriguez (Budget-Conscious Teacher)
+- **Voice ID**: `EXAVITQu4vr4xnSDxMaL` (Bella)
+- **Style**: Warm, friendly, understanding
+- **Greeting**: "Hi there, this is Linda. I'm calling about your insurance quote..."
 
-You can create custom voices in ElevenLabs:
-1. Upload voice samples
-2. Train custom voice model
-3. Replace voice IDs in `src/utils/voiceApi.ts`
+## 🔄 Conversation Flow
 
-## 🐛 Troubleshooting
+1. **User clicks "Start Voice Call"**
+2. **AI customer speaks greeting** using ElevenLabs voice
+3. **User presses microphone** and speaks response
+4. **Speech recognition** converts to text
+5. **Text sent to Claude API** for AI response
+6. **AI response converted** to ElevenLabs speech
+7. **Audio plays automatically**
+8. **Repeat conversation loop** until call ends
 
-### API Key Issues
-- Check environment variable is set correctly
-- Verify API key is valid in ElevenLabs dashboard
-- Check browser console for error messages
+## 🛠️ Technical Implementation
 
-### Voice Quality
-- ElevenLabs voices are much more natural than browser TTS
-- Adjust voice settings in `VOICE_SETTINGS` for different personalities
-- Test different voice IDs for best results
+### API Routes
+- `/api/elevenlabs` - ElevenLabs text-to-speech
+- `/api/chat` - Claude AI conversation
 
-### Fallback Issues
-- Browser TTS will work if ElevenLabs fails
-- Check browser compatibility for speech synthesis
-- Ensure HTTPS is enabled (required for speech APIs) 
+### Components
+- `VoiceTraining.tsx` - Main voice training interface
+- `VoiceTraining` - iPhone-style call interface
+
+### Browser Support
+- **Chrome**: Full support
+- **Safari**: Full support (with webkit prefix)
+- **Firefox**: Full support
+- **Edge**: Full support
+
+## 🔒 Security & Permissions
+
+### HTTPS Required
+- **Speech APIs** require HTTPS in production
+- **Microphone access** requires user permission
+- **Secure API key** handling
+
+### Error Handling
+- **API key validation**
+- **Network error recovery**
+- **Browser compatibility** checks
+- **Graceful fallbacks**
+
+## 📱 Mobile Support
+
+### Responsive Design
+- **Touch-friendly** interface
+- **Large buttons** for mobile
+- **Optimized layout** for small screens
+- **Audio optimization** for mobile devices
+
+### Performance
+- **Streaming audio** for fast response
+- **Audio buffering** for smooth playback
+- **Memory management** for long calls
+
+## 🎯 Usage Instructions
+
+### For Users
+1. **Select a customer** from the dashboard
+2. **Click "Start Voice Call"**
+3. **Allow microphone access** when prompted
+4. **Speak naturally** when the microphone is active
+5. **Listen to AI responses** in realistic voices
+6. **End call** when practice is complete
+
+### For Developers
+1. **Set up environment variables**
+2. **Deploy to HTTPS environment**
+3. **Test microphone permissions**
+4. **Verify ElevenLabs API access**
+5. **Monitor API usage** and costs
+
+## 💰 ElevenLabs Pricing
+
+### Free Tier
+- **10,000 characters** per month
+- **Basic voices** available
+- **Perfect for testing**
+
+### Paid Plans
+- **Starter**: $22/month - 30,000 characters
+- **Creator**: $99/month - 250,000 characters
+- **Independent Publisher**: $330/month - 1,000,000 characters
+- **Growing Business**: $825/month - 2,500,000 characters
+
+### Voice Cloning
+- **Custom voices** available
+- **Professional voice** training
+- **Brand-specific** voice creation
+
+## 🚀 Deployment Checklist
+
+- [ ] **Environment variables** configured
+- [ ] **HTTPS enabled** for production
+- [ ] **ElevenLabs API key** validated
+- [ ] **Microphone permissions** tested
+- [ ] **Browser compatibility** verified
+- [ ] **Error handling** implemented
+- [ ] **Performance optimized**
+- [ ] **Mobile responsiveness** tested
+
+## 🎉 Result
+
+ObjectionIQ now provides a **truly realistic phone call experience** with:
+- **Real speech recognition**
+- **Professional AI voices**
+- **Natural conversation flow**
+- **iPhone-style interface**
+- **Complete voice training** system
+
+This creates the most realistic objection handling practice available for insurance agents! 🎙️ 

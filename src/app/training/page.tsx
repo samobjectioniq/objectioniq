@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { ArrowLeft, Phone, PhoneOff, Mic, MicOff } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'next/navigation';
 import { Persona } from '@/types/persona';
+import VoiceTraining from '@/components/VoiceTraining';
 
 const personas: Persona[] = [
   {
@@ -44,11 +45,7 @@ function TrainingContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
-  const [isCallActive, setIsCallActive] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [callDuration, setCallDuration] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [showVoiceTraining, setShowVoiceTraining] = useState(false);
 
   useEffect(() => {
     const personaId = searchParams.get('persona');
@@ -60,37 +57,8 @@ function TrainingContent() {
     }
   }, [searchParams]);
 
-  const startCall = () => {
-    setIsCallActive(true);
-    setError(null);
-    // Start call timer
-    const timer = setInterval(() => {
-      setCallDuration(prev => prev + 1);
-    }, 1000);
-    
-    // Simulate AI greeting after 1 second
-    setTimeout(() => {
-      setIsSpeaking(true);
-      // Simulate speaking for 3 seconds
-      setTimeout(() => {
-        setIsSpeaking(false);
-        setIsListening(true);
-      }, 3000);
-    }, 1000);
-  };
-
-  const endCall = () => {
-    setIsCallActive(false);
-    setIsListening(false);
-    setIsSpeaking(false);
-    setCallDuration(0);
-    setError(null);
-  };
-
-  const formatDuration = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  const handleEndCall = () => {
+    setShowVoiceTraining(false);
   };
 
   if (!user) {
@@ -126,7 +94,7 @@ function TrainingContent() {
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Phone className="w-12 h-12 text-gray-400" />
+              <span className="text-gray-400 text-3xl">?</span>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">No customer selected</h2>
             <p className="text-gray-600 mb-8">Please select a customer to practice with.</p>
@@ -134,12 +102,21 @@ function TrainingContent() {
               href="/dashboard" 
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors inline-flex items-center gap-2"
             >
-              <Phone className="w-5 h-5" />
               Choose Customer
             </Link>
           </div>
         </main>
       </div>
+    );
+  }
+
+  // Show voice training interface
+  if (showVoiceTraining) {
+    return (
+      <VoiceTraining 
+        persona={selectedPersona} 
+        onEndCall={handleEndCall}
+      />
     );
   }
 
@@ -155,101 +132,48 @@ function TrainingContent() {
               </Link>
               <h1 className="text-xl font-bold text-gray-900">Practice with {selectedPersona.name}</h1>
             </div>
-            {isCallActive && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>{formatDuration(callDuration)}</span>
-              </div>
-            )}
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {!isCallActive ? (
-          /* Pre-Call Screen */
-          <div className="text-center">
-            {/* Customer Info */}
-            <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-              <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-blue-600 text-3xl font-bold">{selectedPersona.avatar}</span>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedPersona.name}</h2>
-              <p className="text-gray-600 mb-4">{selectedPersona.type}</p>
-              <p className="text-gray-500">{selectedPersona.description}</p>
+        <div className="text-center">
+          {/* Customer Info */}
+          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-blue-600 text-3xl font-bold">{selectedPersona.avatar}</span>
             </div>
-
-            {/* Start Call Button */}
-            <button
-              onClick={startCall}
-              className="bg-green-600 hover:bg-green-700 text-white px-12 py-4 rounded-full text-xl font-semibold transition-colors flex items-center gap-3 mx-auto"
-            >
-              <Phone className="w-6 h-6" />
-              Start Call
-            </button>
-
-            <p className="text-gray-500 mt-4">Click to begin your practice session</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedPersona.name}</h2>
+            <p className="text-gray-600 mb-4">{selectedPersona.type}</p>
+            <p className="text-gray-500">{selectedPersona.description}</p>
           </div>
-        ) : (
-          /* Active Call Screen */
-          <div className="text-center">
-            {/* Call Interface */}
-            <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-              <div className="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-blue-600 text-4xl font-bold">{selectedPersona.avatar}</span>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedPersona.name}</h2>
-              
-              {/* Call Status */}
-              <div className="mb-6">
-                {isSpeaking && (
-                  <div className="flex items-center justify-center gap-2 text-blue-600">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                    <span className="font-medium">Speaking...</span>
-                  </div>
-                )}
-                {isListening && (
-                  <div className="flex items-center justify-center gap-2 text-green-600">
-                    <Mic className="w-4 h-4" />
-                    <span className="font-medium">Listening...</span>
-                  </div>
-                )}
-                {!isSpeaking && !isListening && (
-                  <div className="text-gray-500">
-                    <span>Call Active</span>
-                  </div>
-                )}
-              </div>
 
-              {/* Call Duration */}
-              <div className="text-3xl font-mono text-gray-900 mb-6">
-                {formatDuration(callDuration)}
-              </div>
-
-              {/* End Call Button */}
-              <button
-                onClick={endCall}
-                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 mx-auto"
-              >
-                <PhoneOff className="w-5 h-5" />
-                End Call
-              </button>
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <p className="text-red-800">{error}</p>
-              </div>
-            )}
-
-            <p className="text-gray-500">
-              {isSpeaking ? "AI customer is speaking..." : 
-               isListening ? "Speak now..." : 
-               "Call in progress..."}
+          {/* Voice Training Info */}
+          <div className="bg-blue-50 rounded-xl p-6 mb-8 max-w-2xl mx-auto">
+            <h3 className="text-lg font-semibold text-blue-900 mb-3">Real Voice Training</h3>
+            <p className="text-blue-700 mb-4">
+              Practice with realistic voice conversations using advanced AI technology. 
+              Speak naturally and receive AI responses in real-time.
             </p>
+            <div className="text-sm text-blue-600 space-y-1">
+              <p>• Real speech recognition</p>
+              <p>• Natural AI voice responses</p>
+              <p>• iPhone-style call interface</p>
+              <p>• Professional objection scenarios</p>
+            </div>
           </div>
-        )}
+
+          {/* Start Call Button */}
+          <button
+            onClick={() => setShowVoiceTraining(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-12 py-4 rounded-full text-xl font-semibold transition-colors flex items-center gap-3 mx-auto"
+          >
+            Start Voice Call
+          </button>
+
+          <p className="text-gray-500 mt-4">Click to begin your realistic voice practice session</p>
+        </div>
       </main>
     </div>
   );
