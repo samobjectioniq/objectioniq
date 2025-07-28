@@ -1,3 +1,38 @@
+// Test ElevenLabs API key
+export const testElevenLabsAPI = async (): Promise<boolean> => {
+  console.log('🧪 Testing ElevenLabs API connection...');
+  
+  if (!ELEVENLABS_API_KEY) {
+    console.error('❌ ElevenLabs API key not found');
+    console.error('❌ Please add NEXT_PUBLIC_ELEVENLABS_API_KEY to your environment variables');
+    return false;
+  }
+
+  try {
+    // Test with a simple API call to get user info
+    const response = await fetch(`${ELEVENLABS_BASE_URL}/user`, {
+      headers: {
+        'xi-api-key': ELEVENLABS_API_KEY,
+      },
+    });
+
+    if (response.ok) {
+      const userData = await response.json();
+      console.log('✅ ElevenLabs API connection successful');
+      console.log('✅ User subscription:', userData.subscription);
+      console.log('✅ Available characters:', userData.subscription?.character_count || 'Unknown');
+      return true;
+    } else {
+      const errorText = await response.text();
+      console.error('❌ ElevenLabs API test failed:', response.status, errorText);
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ ElevenLabs API test error:', error);
+    return false;
+  }
+};
+
 // ElevenLabs Voice API for high-quality AI voices
 const ELEVENLABS_API_KEY = process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY;
 const ELEVENLABS_BASE_URL = 'https://api.elevenlabs.io/v1';
@@ -49,8 +84,14 @@ export const generateElevenLabsSpeech = async (
   text: string, 
   personaId: string
 ): Promise<ArrayBuffer | null> => {
+  console.log('🎙️ Checking ElevenLabs API key...');
+  console.log('🎙️ API Key exists:', !!ELEVENLABS_API_KEY);
+  console.log('🎙️ API Key length:', ELEVENLABS_API_KEY?.length || 0);
+  console.log('🎙️ API Key preview:', ELEVENLABS_API_KEY?.substring(0, 10) + '...' || 'None');
+  
   if (!ELEVENLABS_API_KEY) {
-    console.warn('ElevenLabs API key not configured, falling back to browser TTS');
+    console.warn('❌ ElevenLabs API key not configured, falling back to browser TTS');
+    console.warn('❌ Make sure NEXT_PUBLIC_ELEVENLABS_API_KEY is set in your environment variables');
     return null;
   }
 
@@ -61,6 +102,15 @@ export const generateElevenLabsSpeech = async (
     console.log('🎙️ Generating ElevenLabs speech for:', personaId);
     console.log('🎙️ Voice ID:', voiceId);
     console.log('🎙️ Text:', text);
+    console.log('🎙️ API URL:', `${ELEVENLABS_BASE_URL}/text-to-speech/${voiceId}`);
+
+    const requestBody = {
+      text: text,
+      model_id: 'eleven_monolingual_v1',
+      voice_settings: voiceSettings
+    };
+
+    console.log('🎙️ Request body:', requestBody);
 
     const response = await fetch(`${ELEVENLABS_BASE_URL}/text-to-speech/${voiceId}`, {
       method: 'POST',
@@ -69,21 +119,21 @@ export const generateElevenLabsSpeech = async (
         'Content-Type': 'application/json',
         'xi-api-key': ELEVENLABS_API_KEY,
       },
-      body: JSON.stringify({
-        text: text,
-        model_id: 'eleven_monolingual_v1',
-        voice_settings: voiceSettings
-      }),
+      body: JSON.stringify(requestBody),
     });
+
+    console.log('🎙️ Response status:', response.status);
+    console.log('🎙️ Response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('🎙️ ElevenLabs API error:', response.status, errorText);
-      throw new Error(`ElevenLabs API error: ${response.status}`);
+      throw new Error(`ElevenLabs API error: ${response.status} - ${errorText}`);
     }
 
     const audioBuffer = await response.arrayBuffer();
     console.log('🎙️ ElevenLabs speech generated successfully');
+    console.log('🎙️ Audio buffer size:', audioBuffer.byteLength);
     return audioBuffer;
 
   } catch (error) {

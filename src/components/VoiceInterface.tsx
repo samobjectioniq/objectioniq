@@ -18,7 +18,8 @@ import {
 import { 
   generateElevenLabsSpeech, 
   fallbackToBrowserTTS, 
-  playAudioBuffer 
+  playAudioBuffer,
+  testElevenLabsAPI
 } from '@/utils/voiceApi';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -701,11 +702,26 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
             >
               Test API
             </button>
+            <button
+              onClick={async () => {
+                console.log('🔧 Testing ElevenLabs API...');
+                const isWorking = await testElevenLabsAPI();
+                if (isWorking) {
+                  showSuccess('ElevenLabs Test', 'API connection successful!');
+                } else {
+                  showError('ElevenLabs Test', 'API connection failed. Check console for details.');
+                }
+              }}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
+            >
+              Test ElevenLabs
+            </button>
           </div>
           <div className="mt-3 text-sm text-yellow-700">
             <p><strong>Status:</strong> {callState.isConnected ? 'Connected' : 'Disconnected'} | {callState.isListening ? 'Listening' : 'Not Listening'} | {callState.isSpeaking ? 'Speaking' : 'Not Speaking'}</p>
             <p><strong>Error:</strong> {callState.error || 'None'}</p>
             <p><strong>Audio Level:</strong> {callState.audioLevel.toFixed(1)}%</p>
+            <p><strong>ElevenLabs Key:</strong> {process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY ? 'Configured' : 'Missing'}</p>
           </div>
         </div>
       )}
