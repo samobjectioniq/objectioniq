@@ -294,7 +294,7 @@ export default function ROICalculator() {
                   </div>
                 </div>
                 <div className="mt-4 text-center">
-                  <div className="text-green-100 text-sm">Better objection handling improves your close rate from {roiData.currentConversion}% to {roiData.improvedConversion}% (+{roiData.improvedConversion - roiData.currentConversion} percentage points), creating {results.savedLeads} additional sales and ${results.revenueIncrease.toLocaleString()} additional monthly revenue</div>
+                  <div className="text-green-100 text-sm">Better objection handling improves your close rate from {roiData.currentConversion}% to {roiData.improvedConversion}% (+{roiData.improvedConversion - roiData.currentConversion}%), creating {results.savedLeads} additional sales and ${results.revenueIncrease.toLocaleString()} additional monthly revenue</div>
                 </div>
               </div>
 
