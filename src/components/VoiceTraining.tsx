@@ -277,6 +277,17 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
     onEndCall();
   };
 
+  // Auto-redirect after showing summary
+  useEffect(() => {
+    if (showSessionSummary) {
+      const timer = setTimeout(() => {
+        handleSessionSummaryClose();
+      }, 3000); // Show summary for 3 seconds then auto-redirect
+
+      return () => clearTimeout(timer);
+    }
+  }, [showSessionSummary]);
+
   // Toggle microphone
   const toggleMicrophone = () => {
     if (isListening) {
@@ -376,22 +387,13 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
             </div>
           </div>
           
-          <div className="space-y-3">
-            <button
-              onClick={handleSessionSummaryClose}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              Practice with Different Customer
-            </button>
-            <button
-              onClick={() => {
-                setShowSessionSummary(false);
-                startCall();
-              }}
-              className="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              Practice Again with {persona.name}
-            </button>
+          <div className="text-center">
+            <p className="text-gray-500 text-sm">
+              Returning to practice screen in a few seconds...
+            </p>
+            <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '100%' }}></div>
+            </div>
           </div>
         </div>
       </div>
