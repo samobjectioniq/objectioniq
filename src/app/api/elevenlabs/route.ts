@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     const voiceId = VOICE_IDS[personaId as keyof typeof VOICE_IDS] || VOICE_IDS.default;
-    const voiceSettings = VOICE_SETTINGS[personaId] || VOICE_SETTINGS.default;
+    const voiceSettings = VOICE_SETTINGS[personaId as keyof typeof VOICE_SETTINGS] || VOICE_SETTINGS.default;
 
     // Call ElevenLabs API
     const response = await fetch(`${ELEVENLABS_BASE_URL}/text-to-speech/${voiceId}`, {

@@ -33,6 +33,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
   const microphoneRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const speakTextRef = useRef<((text: string) => Promise<void>) | null>(null);
 
   // Initialize speech recognition
   const initializeSpeechRecognition = useCallback(() => {
@@ -114,7 +115,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
   }, [isListening]);
 
   // Generate AI response using Claude API
-  const generateAIResponse = async (userMessage: string) => {
+  const generateAIResponse = useCallback(async (userMessage: string) => {
     try {
       setIsSpeaking(true);
       
@@ -150,17 +151,17 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
       setConversation(prev => [...prev, aiMessage]);
 
       // Convert AI response to speech
-      await speakText(aiResponse);
+      await speakTextRef.current?.(aiResponse);
 
     } catch (error) {
       console.error('AI response error:', error);
       setError('Failed to get AI response');
       setIsSpeaking(false);
     }
-  };
+  }, [persona.id, conversation]);
 
   // Speak text using ElevenLabs
-  const speakText = async (text: string) => {
+  const speakText = useCallback(async (text: string) => {
     try {
       const response = await fetch('/api/elevenlabs', {
         method: 'POST',
@@ -200,7 +201,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
         setIsSpeaking(false);
       }
     }
-  };
+  }, [persona.id]);
 
   // Start the call
   const startCall = async () => {
@@ -217,6 +218,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
 
     // Initialize speech synthesis
     synthesisRef.current = window.speechSynthesis;
+    speakTextRef.current = speakText;
 
     // Start call timer
     callTimerRef.current = setInterval(() => {
