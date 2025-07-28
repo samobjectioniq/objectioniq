@@ -25,6 +25,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
   const [conversation, setConversation] = useState<ConversationMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [audioLevel, setAudioLevel] = useState(0);
+  const [showSessionSummary, setShowSessionSummary] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthesisRef = useRef<SpeechSynthesis | null>(null);
@@ -248,7 +249,6 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
     setIsCallActive(false);
     setIsListening(false);
     setIsSpeaking(false);
-    setCallDuration(0);
     setError(null);
 
     // Clean up
@@ -265,6 +265,15 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
       synthesisRef.current.cancel();
     }
 
+    // Show session summary before redirecting
+    setShowSessionSummary(true);
+  };
+
+  // Handle session summary close
+  const handleSessionSummaryClose = () => {
+    setShowSessionSummary(false);
+    setCallDuration(0);
+    setConversation([]);
     onEndCall();
   };
 
@@ -331,6 +340,59 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
           </button>
           
           <p className="text-gray-500 mt-4">Click to begin your practice session</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show session summary
+  if (showSessionSummary) {
+    const userMessages = conversation.filter(msg => msg.speaker === 'user').length;
+    const aiMessages = conversation.filter(msg => msg.speaker === 'ai').length;
+    
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+          <div className="text-center mb-6">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-green-600 text-2xl">✓</span>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Session Complete!</h2>
+            <p className="text-gray-600">Great practice with {persona.name}</p>
+          </div>
+          
+          <div className="space-y-4 mb-6">
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-gray-600">Call Duration:</span>
+              <span className="font-semibold">{formatDuration(callDuration)}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-gray-600">Your Responses:</span>
+              <span className="font-semibold">{userMessages}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-gray-600">Customer Responses:</span>
+              <span className="font-semibold">{aiMessages}</span>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <button
+              onClick={handleSessionSummaryClose}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              Practice with Different Customer
+            </button>
+            <button
+              onClick={() => {
+                setShowSessionSummary(false);
+                startCall();
+              }}
+              className="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              Practice Again with {persona.name}
+            </button>
+          </div>
         </div>
       </div>
     );

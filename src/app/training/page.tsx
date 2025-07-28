@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import VoiceTraining from '@/components/VoiceTraining';
 import { Persona } from '@/types/persona';
 
@@ -40,6 +40,7 @@ const personas: Persona[] = [
 
 function TrainingContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [showVoiceTraining, setShowVoiceTraining] = useState(false);
 
@@ -55,8 +56,8 @@ function TrainingContent() {
   }, [searchParams]);
 
   const handleEndCall = () => {
-    setShowVoiceTraining(false);
-    setSelectedPersona(null);
+    // Redirect back to dashboard instead of showing "No customer selected"
+    router.push('/dashboard');
   };
 
   if (!selectedPersona) {
@@ -64,7 +65,13 @@ function TrainingContent() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">No customer selected</h1>
-          <p className="text-gray-600">Please select a customer from the dashboard to start training.</p>
+          <p className="text-gray-600 mb-6">Please select a customer from the dashboard to start training.</p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          >
+            Go to Dashboard
+          </button>
         </div>
       </div>
     );
