@@ -39,52 +39,79 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
 
   // Initialize speech recognition
   const initializeSpeechRecognition = useCallback(() => {
+    console.log('🎤 Initializing speech recognition...');
+    
+    // Check browser support
     const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setError('Speech recognition not supported in this browser');
+      console.error('❌ Speech recognition not supported in this browser');
+      setError('Speech recognition not supported in this browser. Please use Chrome, Edge, or Safari.');
       return false;
     }
 
+    console.log('✅ Speech recognition API available');
+
     recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.continuous = false; // Keep false for better control
-    recognitionRef.current.interimResults = true; // Enable interim results for better feedback
+    recognitionRef.current.continuous = false;
+    recognitionRef.current.interimResults = true;
     recognitionRef.current.lang = 'en-US';
 
     recognitionRef.current.onstart = () => {
+      console.log('🎤 Speech recognition started successfully');
       setIsListening(true);
       setError(null);
-      console.log('🎤 Speech recognition started');
     };
 
     recognitionRef.current.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      console.log('🎤 Speech recognized:', transcript);
+      console.log('🎤 Speech recognition result:', event.results);
       
-      // Show interim results for better feedback
-      if (event.results[0].isFinal) {
-        // Add user message to conversation
-        const userMessage: ConversationMessage = {
-          id: Date.now().toString(),
-          speaker: 'user',
-          text: transcript,
-          timestamp: new Date()
-        };
-        setConversation(prev => [...prev, userMessage]);
+      if (event.results.length > 0) {
+        const transcript = event.results[0][0].transcript;
+        const isFinal = event.results[0].isFinal;
         
-        // Generate AI response
-        generateAIResponseRef.current?.(transcript);
+        console.log('🎤 Transcript:', transcript, 'Final:', isFinal);
+        
+        if (isFinal) {
+          console.log('🎤 Final transcript received:', transcript);
+          
+          // Add user message to conversation
+          const userMessage: ConversationMessage = {
+            id: Date.now().toString(),
+            speaker: 'user',
+            text: transcript,
+            timestamp: new Date()
+          };
+          setConversation(prev => [...prev, userMessage]);
+          
+          // Generate AI response
+          if (generateAIResponseRef.current) {
+            console.log('🎤 Calling AI response with:', transcript);
+            generateAIResponseRef.current(transcript);
+          } else {
+            console.error('❌ generateAIResponseRef.current is null');
+          }
+        }
       }
     };
 
     recognitionRef.current.onerror = (event: any) => {
-      console.error('🎤 Speech recognition error:', event.error);
-      if (event.error !== 'no-speech') {
-        setError('Speech recognition error: ' + event.error);
+      console.error('🎤 Speech recognition error:', event.error, event);
+      
+      if (event.error === 'not-allowed') {
+        setError('Microphone access denied. Please allow microphone access and try again.');
+      } else if (event.error === 'no-speech') {
+        console.log('🎤 No speech detected, this is normal');
+      } else if (event.error === 'network') {
+        setError('Network error with speech recognition. Please check your internet connection.');
+      } else {
+        setError(`Speech recognition error: ${event.error}`);
       }
+      
       setIsListening(false);
       
-      // Restart listening after error (except for no-speech)
-      if (event.error !== 'no-speech' && isCallActive) {
+      // Restart listening after error (except for no-speech and not-allowed)
+      if (event.error !== 'no-speech' && event.error !== 'not-allowed' && isCallActive) {
+        console.log('🎤 Restarting speech recognition after error...');
         setTimeout(() => {
           if (recognitionRef.current && isCallActive) {
             recognitionRef.current.start();
@@ -94,11 +121,12 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
     };
 
     recognitionRef.current.onend = () => {
-      setIsListening(false);
       console.log('🎤 Speech recognition ended');
+      setIsListening(false);
       
       // Automatically restart listening if call is still active
       if (isCallActive && !isSpeaking) {
+        console.log('🎤 Auto-restarting speech recognition...');
         setTimeout(() => {
           if (recognitionRef.current && isCallActive && !isSpeaking) {
             recognitionRef.current.start();
@@ -107,6 +135,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
       }
     };
 
+    console.log('✅ Speech recognition initialized successfully');
     return true;
   }, [isCallActive, isSpeaking]);
 
@@ -255,46 +284,71 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
 
   // Start the call
   const startCall = async () => {
+    console.log('📞 Starting call...');
     setIsCallActive(true);
     setError(null);
     
-    // Initialize speech recognition
-    if (!initializeSpeechRecognition()) {
-      return;
-    }
-
-    // Initialize audio analysis
-    await initializeAudioAnalysis();
-
-    // Initialize speech synthesis
-    synthesisRef.current = window.speechSynthesis;
-    speakTextRef.current = speakText;
-    generateAIResponseRef.current = generateAIResponse;
-
-    // Start call timer
-    callTimerRef.current = setInterval(() => {
-      setCallDuration(prev => prev + 1);
-    }, 1000);
-
-    // AI speaks first greeting
-    const greeting = getPersonaGreeting(persona);
-    await speakText(greeting);
-
-    // Add AI greeting to conversation
-    const greetingMessage: ConversationMessage = {
-      id: Date.now().toString(),
-      speaker: 'ai',
-      text: greeting,
-      timestamp: new Date()
-    };
-    setConversation([greetingMessage]);
-
-    // Automatically start listening after greeting
-    setTimeout(() => {
-      if (recognitionRef.current) {
-        recognitionRef.current.start();
+    try {
+      // Initialize speech recognition
+      console.log('📞 Initializing speech recognition...');
+      if (!initializeSpeechRecognition()) {
+        console.error('❌ Failed to initialize speech recognition');
+        return;
       }
-    }, 1000); // Wait 1 second after greeting to start listening
+      console.log('✅ Speech recognition initialized');
+
+      // Initialize audio analysis
+      console.log('📞 Initializing audio analysis...');
+      await initializeAudioAnalysis();
+      console.log('✅ Audio analysis initialized');
+
+      // Initialize speech synthesis
+      console.log('📞 Initializing speech synthesis...');
+      synthesisRef.current = window.speechSynthesis;
+      speakTextRef.current = speakText;
+      generateAIResponseRef.current = generateAIResponse;
+      console.log('✅ Speech synthesis initialized');
+
+      // Start call timer
+      callTimerRef.current = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+      console.log('✅ Call timer started');
+
+      // AI speaks first greeting
+      console.log('📞 AI speaking greeting...');
+      const greeting = getPersonaGreeting(persona);
+      console.log('📞 Greeting text:', greeting);
+      await speakText(greeting);
+      console.log('✅ AI greeting completed');
+
+      // Add AI greeting to conversation
+      const greetingMessage: ConversationMessage = {
+        id: Date.now().toString(),
+        speaker: 'ai',
+        text: greeting,
+        timestamp: new Date()
+      };
+      setConversation([greetingMessage]);
+
+      // Automatically start listening after greeting
+      console.log('📞 Scheduling microphone activation...');
+      setTimeout(() => {
+        console.log('📞 Activating microphone...');
+        if (recognitionRef.current) {
+          console.log('📞 Starting speech recognition...');
+          recognitionRef.current.start();
+        } else {
+          console.error('❌ recognitionRef.current is null');
+        }
+      }, 1000); // Wait 1 second after greeting to start listening
+      
+      console.log('✅ Call started successfully');
+      
+    } catch (error) {
+      console.error('❌ Error starting call:', error);
+      setError('Failed to start call: ' + error);
+    }
   };
 
   // End the call
@@ -555,6 +609,38 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
             {isSpeaking ? "AI customer is speaking..." : 
              isListening ? "Speak naturally..." : 
              "Call in progress..."}
+          </div>
+
+          {/* Debug Controls */}
+          <div className="mt-4 p-4 bg-gray-100 rounded-lg">
+            <p className="text-xs text-gray-600 mb-2">Debug Controls:</p>
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={() => {
+                  console.log('🔧 Manual microphone test');
+                  if (recognitionRef.current) {
+                    recognitionRef.current.start();
+                  }
+                }}
+                className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+              >
+                Test Mic
+              </button>
+              <button
+                onClick={() => {
+                  console.log('🔧 Current state:', {
+                    isCallActive,
+                    isListening,
+                    isSpeaking,
+                    hasRecognition: !!recognitionRef.current,
+                    hasAudioContext: !!audioContextRef.current
+                  });
+                }}
+                className="px-3 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+              >
+                Log State
+              </button>
+            </div>
           </div>
         </div>
       </div>
