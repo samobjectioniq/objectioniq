@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
   const [success, setSuccess] = useState('');
 
   const { signIn, signUp } = useAuth();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +37,10 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
           setError(error.message);
         } else {
           setSuccess('Signed in successfully!');
-          setTimeout(() => onClose(), 1000);
+          setTimeout(() => {
+            onClose();
+            router.push('/dashboard');
+          }, 1000);
         }
       } else {
         const { error } = await signUp(email, password, fullName);

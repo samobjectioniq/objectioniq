@@ -9,6 +9,7 @@ import OnboardingTutorial from '@/components/OnboardingTutorial';
 import EngagementFeatures from '@/components/EngagementFeatures';
 import ROICalculator from '@/components/ROICalculator';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -16,11 +17,19 @@ export default function Home() {
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showEngagement, setShowEngagement] = useState(false);
+  const router = useRouter();
 
   const handleAuthClick = (mode: 'signin' | 'signup') => {
     setAuthMode(mode);
     setShowAuthModal(true);
   };
+
+  // Redirect logged-in users to dashboard
+  useEffect(() => {
+    if (user && !loading) {
+      router.push('/dashboard');
+    }
+  }, [user, loading, router]);
 
   // Check if user is new and show onboarding
   useEffect(() => {
@@ -58,6 +67,18 @@ export default function Home() {
         <div className="text-center animate-fade-in">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 animate-pulse">Loading ObjectionIQ...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading when redirecting logged-in users
+  if (user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 animate-pulse">Taking you to practice...</p>
         </div>
       </div>
     );
