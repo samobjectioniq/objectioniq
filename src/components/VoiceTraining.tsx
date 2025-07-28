@@ -47,39 +47,47 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
 
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.continuous = false;
-    recognitionRef.current.interimResults = false;
+    recognitionRef.current.interimResults = true; // Enable interim results for better feedback
     recognitionRef.current.lang = 'en-US';
+    recognitionRef.current.maxAlternatives = 1;
 
     recognitionRef.current.onstart = () => {
       setIsListening(true);
       setError(null);
+      console.log('🎤 Speech recognition started');
     };
 
     recognitionRef.current.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
-      console.log('Speech recognized:', transcript);
+      console.log('🎤 Speech recognized:', transcript);
       
-      // Add user message to conversation
-      const userMessage: ConversationMessage = {
-        id: Date.now().toString(),
-        speaker: 'user',
-        text: transcript,
-        timestamp: new Date()
-      };
-      setConversation(prev => [...prev, userMessage]);
-      
-      // Generate AI response
-      generateAIResponseRef.current?.(transcript);
+      // Show interim results for better feedback
+      if (event.results[0].isFinal) {
+        // Add user message to conversation
+        const userMessage: ConversationMessage = {
+          id: Date.now().toString(),
+          speaker: 'user',
+          text: transcript,
+          timestamp: new Date()
+        };
+        setConversation(prev => [...prev, userMessage]);
+        
+        // Generate AI response
+        generateAIResponseRef.current?.(transcript);
+      }
     };
 
     recognitionRef.current.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      setError('Speech recognition error: ' + event.error);
+      console.error('🎤 Speech recognition error:', event.error);
+      if (event.error !== 'no-speech') {
+        setError('Speech recognition error: ' + event.error);
+      }
       setIsListening(false);
     };
 
     recognitionRef.current.onend = () => {
       setIsListening(false);
+      console.log('🎤 Speech recognition ended');
     };
 
     return true;
@@ -102,7 +110,8 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
         if (analyserRef.current && isListening) {
           analyserRef.current.getByteFrequencyData(dataArray);
           const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-          setAudioLevel(average / 255);
+          const normalizedLevel = Math.min(1, average / 128);
+          setAudioLevel(normalizedLevel);
         }
         animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
       };
@@ -422,12 +431,13 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
             )}
             {isListening && (
               <div className="flex items-center justify-center gap-2 text-green-100">
+                <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
                 <Mic className="w-4 h-4" />
                 <span className="text-sm">Listening...</span>
               </div>
             )}
             {!isSpeaking && !isListening && (
-              <div className="text-green-100 text-sm">Call Active</div>
+              <div className="text-green-100 text-sm">Ready to listen</div>
             )}
           </div>
 
@@ -475,15 +485,30 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
           {/* Audio Level Indicator */}
           {isListening && (
             <div className="flex justify-center items-center gap-1 mb-4">
-              {[...Array(5)].map((_, i) => (
+              {[...Array(8)].map((_, i) => (
                 <div
                   key={i}
-                  className={`w-1 rounded-full transition-all ${
-                    audioLevel > (i + 1) * 0.2 ? 'bg-red-500' : 'bg-gray-300'
+                  className={`w-1 rounded-full transition-all duration-100 ${
+                    audioLevel > (i + 1) * 0.125 ? 'bg-red-500' : 'bg-gray-300'
                   }`}
-                  style={{ height: `${(i + 1) * 8}px` }}
+                  style={{ 
+                    height: `${(i + 1) * 6}px`,
+                    opacity: audioLevel > (i + 1) * 0.125 ? 1 : 0.3
+                  }}
                 />
               ))}
+            </div>
+          )}
+
+          {/* Microphone Status */}
+          {isListening && (
+            <div className="text-center mb-4">
+              <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-3 py-1">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-red-700 text-sm font-medium">
+                  {audioLevel > 0.1 ? 'Microphone active' : 'Waiting for speech...'}
+                </span>
+              </div>
             </div>
           )}
 

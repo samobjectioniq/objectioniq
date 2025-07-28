@@ -18,31 +18,36 @@ const VOICE_SETTINGS = {
     stability: 0.5,
     similarity_boost: 0.75,
     style: 0.0,
-    use_speaker_boost: true
+    use_speaker_boost: true,
+    speed: 1.2 // Speed up Sarah's voice by 20%
   },
   robert: {
     stability: 0.6,
     similarity_boost: 0.75,
     style: 0.0,
-    use_speaker_boost: true
+    use_speaker_boost: true,
+    speed: 1.1
   },
   linda: {
     stability: 0.5,
     similarity_boost: 0.75,
     style: 0.0,
-    use_speaker_boost: true
+    use_speaker_boost: true,
+    speed: 1.1
   },
   'david-thompson': {
     stability: 0.7,
     similarity_boost: 0.75,
     style: 0.0,
-    use_speaker_boost: true
+    use_speaker_boost: true,
+    speed: 1.0
   },
   default: {
     stability: 0.5,
     similarity_boost: 0.75,
     style: 0.0,
-    use_speaker_boost: true
+    use_speaker_boost: true,
+    speed: 1.1
   }
 };
 
