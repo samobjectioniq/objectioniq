@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'next/navigation';
 import { Persona } from '@/types/persona';
 import VoiceTraining from '@/components/VoiceTraining';
+import AgentVoiceTraining from '@/components/AgentVoiceTraining';
 
 const personas: Persona[] = [
   {
@@ -112,12 +113,22 @@ function TrainingContent() {
 
   // Show voice training interface
   if (showVoiceTraining) {
-    return (
-      <VoiceTraining 
-        persona={selectedPersona} 
-        onEndCall={handleEndCall}
-      />
-    );
+    // Use AgentVoiceTraining for Sarah, regular VoiceTraining for others
+    if (selectedPersona.id === 'sarah') {
+      return (
+        <AgentVoiceTraining 
+          persona={selectedPersona} 
+          onEndCall={handleEndCall}
+        />
+      );
+    } else {
+      return (
+        <VoiceTraining 
+          persona={selectedPersona} 
+          onEndCall={handleEndCall}
+        />
+      );
+    }
   }
 
   return (
@@ -149,30 +160,51 @@ function TrainingContent() {
             <p className="text-gray-500">{selectedPersona.description}</p>
           </div>
 
-          {/* Voice Training Info */}
-          <div className="bg-blue-50 rounded-xl p-6 mb-8 max-w-2xl mx-auto">
-            <h3 className="text-lg font-semibold text-blue-900 mb-3">Real Voice Training</h3>
-            <p className="text-blue-700 mb-4">
-              Practice with realistic voice conversations using advanced AI technology. 
-              Speak naturally and receive AI responses in real-time.
-            </p>
-            <div className="text-sm text-blue-600 space-y-1">
-              <p>• Real speech recognition</p>
-              <p>• Natural AI voice responses</p>
-              <p>• iPhone-style call interface</p>
-              <p>• Professional objection scenarios</p>
+          {/* Training Info */}
+          {selectedPersona.id === 'sarah' ? (
+            <div className="bg-green-50 rounded-xl p-6 mb-8 max-w-2xl mx-auto">
+              <h3 className="text-lg font-semibold text-green-900 mb-3">🤖 AI Agent Conversation</h3>
+              <p className="text-green-700 mb-4">
+                Connect with Sarah Mitchell, a real AI agent trained for insurance objection handling. 
+                Have a natural conversation and practice your sales skills with advanced AI technology.
+              </p>
+              <div className="text-sm text-green-600 space-y-1">
+                <p>• Real AI agent conversation</p>
+                <p>• Natural voice responses</p>
+                <p>• Realistic objection scenarios</p>
+                <p>• Professional training experience</p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-blue-50 rounded-xl p-6 mb-8 max-w-2xl mx-auto">
+              <h3 className="text-lg font-semibold text-blue-900 mb-3">Real Voice Training</h3>
+              <p className="text-blue-700 mb-4">
+                Practice with realistic voice conversations using advanced AI technology. 
+                Speak naturally and receive AI responses in real-time.
+              </p>
+              <div className="text-sm text-blue-600 space-y-1">
+                <p>• Real speech recognition</p>
+                <p>• Natural AI voice responses</p>
+                <p>• iPhone-style call interface</p>
+                <p>• Professional objection scenarios</p>
+              </div>
+            </div>
+          )}
 
           {/* Start Call Button */}
           <button
             onClick={() => setShowVoiceTraining(true)}
             className="bg-green-600 hover:bg-green-700 text-white px-12 py-4 rounded-full text-xl font-semibold transition-colors flex items-center gap-3 mx-auto"
           >
-            Start Voice Call
+            {selectedPersona.id === 'sarah' ? 'Call Sarah Mitchell' : 'Start Voice Call'}
           </button>
 
-          <p className="text-gray-500 mt-4">Click to begin your realistic voice practice session</p>
+          <p className="text-gray-500 mt-4">
+            {selectedPersona.id === 'sarah' 
+              ? 'Connect with the AI agent for realistic practice' 
+              : 'Click to begin your realistic voice practice session'
+            }
+          </p>
         </div>
       </main>
     </div>
