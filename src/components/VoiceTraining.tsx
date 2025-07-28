@@ -27,6 +27,10 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
   const [audioLevel, setAudioLevel] = useState(0);
   const [showSessionSummary, setShowSessionSummary] = useState(false);
 
+  // State for text input fallback
+  const [useTextInput, setUseTextInput] = useState(false);
+  const [textInput, setTextInput] = useState('');
+
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthesisRef = useRef<SpeechSynthesis | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -289,13 +293,23 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
     setError(null);
     
     try {
+      // Test microphone access first
+      console.log('📞 Testing microphone access...');
+      const hasMicrophoneAccess = await testMicrophoneAccess();
+      
+      if (!hasMicrophoneAccess) {
+        console.log('📞 No microphone access, enabling text input fallback');
+        setUseTextInput(true);
+      }
+
       // Initialize speech recognition
       console.log('📞 Initializing speech recognition...');
       if (!initializeSpeechRecognition()) {
         console.error('❌ Failed to initialize speech recognition');
-        return;
+        setUseTextInput(true); // Enable text input as fallback
+      } else {
+        console.log('✅ Speech recognition initialized');
       }
-      console.log('✅ Speech recognition initialized');
 
       // Initialize audio analysis
       console.log('📞 Initializing audio analysis...');
@@ -331,23 +345,27 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
       };
       setConversation([greetingMessage]);
 
-      // Automatically start listening after greeting
-      console.log('📞 Scheduling microphone activation...');
-      setTimeout(() => {
-        console.log('📞 Activating microphone...');
-        if (recognitionRef.current) {
-          console.log('📞 Starting speech recognition...');
-          recognitionRef.current.start();
-        } else {
-          console.error('❌ recognitionRef.current is null');
-        }
-      }, 1000); // Wait 1 second after greeting to start listening
+      // Automatically start listening after greeting (only if not using text input)
+      if (!useTextInput) {
+        console.log('📞 Scheduling microphone activation...');
+        setTimeout(() => {
+          console.log('📞 Activating microphone...');
+          if (recognitionRef.current) {
+            console.log('📞 Starting speech recognition...');
+            recognitionRef.current.start();
+          } else {
+            console.error('❌ recognitionRef.current is null');
+            setUseTextInput(true); // Fallback to text input
+          }
+        }, 1000); // Wait 1 second after greeting to start listening
+      }
       
       console.log('✅ Call started successfully');
       
     } catch (error) {
       console.error('❌ Error starting call:', error);
       setError('Failed to start call: ' + error);
+      setUseTextInput(true); // Enable text input as fallback
     }
   };
 
@@ -424,6 +442,44 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
       linda: "Hi there, this is Linda. I'm calling about your insurance quote. I understand budget is important, so I want to make sure we find the right coverage for your family. What's your biggest concern right now?"
     };
     return greetings[persona.id as keyof typeof greetings] || greetings.sarah;
+  };
+
+  // Test microphone access
+  const testMicrophoneAccess = async () => {
+    try {
+      console.log('🎤 Testing microphone access...');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('✅ Microphone access granted');
+      stream.getTracks().forEach(track => track.stop());
+      return true;
+    } catch (error) {
+      console.error('❌ Microphone access denied:', error);
+      setError('Microphone access denied. Please allow microphone access in your browser settings.');
+      return false;
+    }
+  };
+
+  // Manual text input handler
+  const handleTextSubmit = async () => {
+    if (textInput.trim() && !isSpeaking) { // Added !isSpeaking to prevent double speaking
+      console.log('📝 Text input submitted:', textInput);
+      
+      // Add user message to conversation
+      const userMessage: ConversationMessage = {
+        id: Date.now().toString(),
+        speaker: 'user',
+        text: textInput,
+        timestamp: new Date()
+      };
+      setConversation(prev => [...prev, userMessage]);
+      
+      // Generate AI response
+      if (generateAIResponseRef.current) {
+        generateAIResponseRef.current(textInput);
+      }
+      
+      setTextInput('');
+    }
   };
 
   // Cleanup on unmount
@@ -616,9 +672,11 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
             <p className="text-xs text-gray-600 mb-2">Debug Controls:</p>
             <div className="flex gap-2 justify-center">
               <button
-                onClick={() => {
+                onClick={async () => {
                   console.log('🔧 Manual microphone test');
-                  if (recognitionRef.current) {
+                  const hasAccess = await testMicrophoneAccess();
+                  console.log('🔧 Microphone access result:', hasAccess);
+                  if (hasAccess && recognitionRef.current) {
                     recognitionRef.current.start();
                   }
                 }}
@@ -632,6 +690,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
                     isCallActive,
                     isListening,
                     isSpeaking,
+                    useTextInput,
                     hasRecognition: !!recognitionRef.current,
                     hasAudioContext: !!audioContextRef.current
                   });
@@ -640,8 +699,42 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
               >
                 Log State
               </button>
+              <button
+                onClick={() => setUseTextInput(!useTextInput)}
+                className={`px-3 py-1 text-xs rounded ${
+                  useTextInput 
+                    ? 'bg-green-500 text-white hover:bg-green-600' 
+                    : 'bg-yellow-500 text-white hover:bg-yellow-600'
+                }`}
+              >
+                {useTextInput ? 'Text Mode' : 'Voice Mode'}
+              </button>
             </div>
           </div>
+
+          {/* Text Input Fallback */}
+          {useTextInput && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800 mb-2">Voice recognition unavailable. Use text input:</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleTextSubmit()}
+                  placeholder="Type your response..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                />
+                <button
+                  onClick={handleTextSubmit}
+                  disabled={!textInput.trim() || isSpeaking}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
