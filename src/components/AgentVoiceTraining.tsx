@@ -85,7 +85,7 @@ export default function AgentVoiceTraining({ persona, onEndCall }: AgentVoiceTra
     };
 
     return true;
-  }, []);
+  }, [sendMessageToAgent]);
 
   // Initialize audio analysis for visual feedback
   const initializeAudioAnalysis = useCallback(async () => {
@@ -148,7 +148,7 @@ export default function AgentVoiceTraining({ persona, onEndCall }: AgentVoiceTra
   };
 
   // Send message to agent
-  const sendMessageToAgent = async (message: string) => {
+  const sendMessageToAgent = useCallback(async (message: string) => {
     if (!sessionId) {
       console.error('No agent session active');
       return;
@@ -198,10 +198,10 @@ export default function AgentVoiceTraining({ persona, onEndCall }: AgentVoiceTra
       setError('Failed to get agent response');
       setIsSpeaking(false);
     }
-  };
+  }, [sessionId, playAgentAudio]);
 
   // Play agent's audio response
-  const playAgentAudio = async (audioBase64: string) => {
+  const playAgentAudio = useCallback(async (audioBase64: string) => {
     try {
       const audioBuffer = Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0));
       const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
@@ -219,7 +219,7 @@ export default function AgentVoiceTraining({ persona, onEndCall }: AgentVoiceTra
       console.error('Audio playback error:', error);
       setIsSpeaking(false);
     }
-  };
+  }, []);
 
   // Start the call
   const startCall = async () => {

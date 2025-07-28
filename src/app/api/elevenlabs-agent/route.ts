@@ -58,6 +58,10 @@ async function createAgentSession() {
   try {
     console.log('🤖 Creating agent session...');
     
+    if (!ELEVENLABS_API_KEY) {
+      throw new Error('ElevenLabs API key not configured');
+    }
+    
     const response = await fetch(`${ELEVENLABS_BASE_URL}/conversation`, {
       method: 'POST',
       headers: {
@@ -105,6 +109,10 @@ async function sendAudioToAgent(sessionId: string, audioData: string) {
   try {
     console.log('🤖 Sending audio to agent...');
     
+    if (!ELEVENLABS_API_KEY) {
+      throw new Error('ElevenLabs API key not configured');
+    }
+    
     // Convert base64 audio to buffer
     const audioBuffer = Buffer.from(audioData, 'base64');
     
@@ -149,6 +157,10 @@ async function sendAudioToAgent(sessionId: string, audioData: string) {
 async function sendMessageToAgent(sessionId: string, message: string) {
   try {
     console.log('🤖 Sending message to agent:', message.substring(0, 50) + '...');
+    
+    if (!ELEVENLABS_API_KEY) {
+      throw new Error('ElevenLabs API key not configured');
+    }
     
     const response = await fetch(`${ELEVENLABS_BASE_URL}/conversation/${sessionId}/message`, {
       method: 'POST',
@@ -205,6 +217,10 @@ async function sendMessageToAgent(sessionId: string, message: string) {
 async function endAgentSession(sessionId: string) {
   try {
     console.log('🤖 Ending agent session...');
+    
+    if (!ELEVENLABS_API_KEY) {
+      throw new Error('ElevenLabs API key not configured');
+    }
     
     const response = await fetch(`${ELEVENLABS_BASE_URL}/conversation/${sessionId}`, {
       method: 'DELETE',
