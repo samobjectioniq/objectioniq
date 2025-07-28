@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { LogOut, Clock, MessageSquare } from 'lucide-react';
+import { LogOut, Clock, MessageSquare, Phone } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -20,7 +20,7 @@ const customers: Customer[] = [
     id: 'sarah',
     name: 'Sarah Mitchell',
     title: 'Young Professional',
-    description: 'Price-conscious tech worker who wants quick solutions',
+    description: 'Price-conscious tech worker',
     avatar: 'SM',
     color: 'blue'
   },
@@ -28,7 +28,7 @@ const customers: Customer[] = [
     id: 'robert',
     name: 'Robert Chen',
     title: 'Small Business Owner',
-    description: 'Detail-oriented entrepreneur who values relationships',
+    description: 'Detail-oriented entrepreneur',
     avatar: 'RC',
     color: 'green'
   },
@@ -36,7 +36,7 @@ const customers: Customer[] = [
     id: 'linda',
     name: 'Linda Rodriguez',
     title: 'Budget-Conscious Teacher',
-    description: 'Family-focused educator on a tight budget',
+    description: 'Family-focused educator',
     avatar: 'LR',
     color: 'purple'
   }
@@ -45,11 +45,8 @@ const customers: Customer[] = [
 export default function DashboardPage() {
   const { user, signOut } = useAuth();
   const router = useRouter();
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   const handlePractice = (customer: Customer) => {
-    setSelectedCustomer(customer);
-    // Navigate to training with the selected customer
     router.push(`/training?persona=${customer.id}`);
   };
 
@@ -83,7 +80,7 @@ export default function DashboardPage() {
               <Link href="/dashboard" className="text-blue-600 font-medium">Practice</Link>
               <Link href="/sessions" className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                My Sessions
+                Sessions
               </Link>
             </div>
             <button
@@ -114,7 +111,8 @@ export default function DashboardPage() {
           {customers.map((customer) => (
             <div
               key={customer.id}
-              className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow"
+              className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow cursor-pointer"
+              onClick={() => handlePractice(customer)}
             >
               {/* Customer Avatar */}
               <div className={`bg-${customer.color}-100 p-8 text-center`}>
@@ -131,10 +129,9 @@ export default function DashboardPage() {
                 
                 {/* Practice Button */}
                 <button
-                  onClick={() => handlePractice(customer)}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
                 >
-                  <MessageSquare className="w-5 h-5" />
+                  <Phone className="w-5 h-5" />
                   Practice with {customer.name}
                 </button>
               </div>
