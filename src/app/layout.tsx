@@ -9,12 +9,16 @@ const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
   display: "swap",
+  preload: true,
+  fallback: ['system-ui', 'arial'],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
+  preload: true,
+  fallback: ['monospace'],
 });
 
 export const metadata: Metadata = {
@@ -85,6 +89,20 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#2563eb" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        
+        {/* Preload critical resources */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://api.anthropic.com" />
+        <link rel="dns-prefetch" href="https://api.elevenlabs.io" />
+        <link rel="dns-prefetch" href="https://supabase.co" />
+        
+        {/* Preload critical CSS */}
+        <link rel="preload" href="/globals.css" as="style" />
+        
+        {/* Resource hints for better performance */}
+        <link rel="prefetch" href="/dashboard" />
+        <link rel="prefetch" href="/training" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-slate-50 via-white to-blue-50 min-h-screen`}

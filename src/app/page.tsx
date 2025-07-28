@@ -1,11 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Phone, Target, TrendingUp, ArrowRight, LogIn, Calculator } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import AuthModal from '@/components/auth/AuthModal';
-import ROICalculator from '@/components/ROICalculator';
 import { useRouter } from 'next/navigation';
+
+// Lazy load non-critical components
+const AuthModal = lazy(() => import('@/components/auth/AuthModal'));
+const ROICalculator = lazy(() => import('@/components/ROICalculator'));
+
+// Loading component for lazy-loaded components
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center p-8">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+  </div>
+);
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -96,7 +105,9 @@ export default function Home() {
               See how improved objection handling can impact your conversion rates and cost per sale
             </p>
           </div>
-          <ROICalculator />
+          <Suspense fallback={<LoadingSpinner />}>
+            <ROICalculator />
+          </Suspense>
         </div>
       </section>
 
@@ -228,11 +239,13 @@ export default function Home() {
       </footer>
 
       {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        defaultMode={authMode}
-      />
+      <Suspense fallback={<LoadingSpinner />}>
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          defaultMode={authMode}
+        />
+      </Suspense>
     </div>
   );
 }
