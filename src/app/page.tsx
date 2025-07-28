@@ -218,8 +218,11 @@ export default function Home() {
           <p className="text-gray-400 mb-4">
             The most realistic way to practice objection handling for insurance agents
           </p>
+          <p className="text-gray-400 mb-2">
+            Contact: <a href="mailto:info@objectioniq.com" className="text-blue-400 hover:text-blue-300 transition-colors">info@objectioniq.com</a>
+          </p>
           <p className="text-gray-500 text-sm">
-            © 2024 ObjectionIQ. All rights reserved.
+            © 2025 ObjectionIQ. All rights reserved.
           </p>
         </div>
       </footer>
