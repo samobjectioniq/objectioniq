@@ -34,6 +34,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
   const animationFrameRef = useRef<number | null>(null);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const speakTextRef = useRef<((text: string) => Promise<void>) | null>(null);
+  const generateAIResponseRef = useRef<((transcript: string) => Promise<void>) | null>(null);
 
   // Initialize speech recognition
   const initializeSpeechRecognition = useCallback(() => {
@@ -67,7 +68,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
       setConversation(prev => [...prev, userMessage]);
       
       // Generate AI response
-      generateAIResponse(transcript);
+      generateAIResponseRef.current?.(transcript);
     };
 
     recognitionRef.current.onerror = (event: any) => {
@@ -81,7 +82,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
     };
 
     return true;
-  }, [generateAIResponse]);
+  }, []);
 
   // Initialize audio analysis for visual feedback
   const initializeAudioAnalysis = useCallback(async () => {
@@ -157,6 +158,11 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
     }
   }, [persona.id, conversation]);
 
+  // Assign function to ref
+  useEffect(() => {
+    generateAIResponseRef.current = generateAIResponse;
+  }, [generateAIResponse]);
+
   // Speak text using ElevenLabs
   const speakText = useCallback(async (text: string) => {
     try {
@@ -216,6 +222,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
     // Initialize speech synthesis
     synthesisRef.current = window.speechSynthesis;
     speakTextRef.current = speakText;
+    generateAIResponseRef.current = generateAIResponse;
 
     // Start call timer
     callTimerRef.current = setInterval(() => {
