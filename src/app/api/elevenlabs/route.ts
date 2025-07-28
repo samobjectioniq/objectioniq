@@ -5,13 +5,14 @@ const ELEVENLABS_BASE_URL = 'https://api.elevenlabs.io/v1';
 
 // Voice IDs for different personas
 const VOICE_IDS = {
-  sarah: '21m00Tcm4TlvDq8ikWAM', // Rachel - young, professional
-  robert: 'AZnzlk1XvdvUeBnXmlld', // Domi - mature, authoritative
-  linda: 'EXAVITQu4vr4xnSDxMaL', // Bella - warm, friendly
-  default: '21m00Tcm4TlvDq8ikWAM' // Rachel as default
+  sarah: '21m00Tcm4TlvDq8ikWAM', // Sarah Mitchell's voice ID
+  robert: 'pNInz6obpgDQGcFmaJgB', // Robert Chen
+  linda: 'AZnzlk1XvdvUeBnXmlld', // Linda Rodriguez
+  'david-thompson': 'EXAVITQu4vr4xnSDxMaL', // David Thompson
+  default: '21m00Tcm4TlvDq8ikWAM' // Default to Sarah's voice
 };
 
-// Persona-specific voice settings
+// Voice settings for natural conversation
 const VOICE_SETTINGS = {
   sarah: {
     stability: 0.5,
@@ -20,14 +21,20 @@ const VOICE_SETTINGS = {
     use_speaker_boost: true
   },
   robert: {
-    stability: 0.7,
-    similarity_boost: 0.8,
+    stability: 0.6,
+    similarity_boost: 0.75,
     style: 0.0,
     use_speaker_boost: true
   },
   linda: {
-    stability: 0.6,
-    similarity_boost: 0.7,
+    stability: 0.5,
+    similarity_boost: 0.75,
+    style: 0.0,
+    use_speaker_boost: true
+  },
+  'david-thompson': {
+    stability: 0.7,
+    similarity_boost: 0.75,
     style: 0.0,
     use_speaker_boost: true
   },
@@ -41,7 +48,7 @@ const VOICE_SETTINGS = {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🎙️ ElevenLabs API called');
+    console.log('🎙️ ElevenLabs TTS API called');
     console.log('🎙️ Environment check:', {
       hasApiKey: !!ELEVENLABS_API_KEY,
       apiKeyLength: ELEVENLABS_API_KEY?.length || 0,
@@ -69,14 +76,12 @@ export async function POST(request: NextRequest) {
 
     const voiceId = VOICE_IDS[personaId as keyof typeof VOICE_IDS] || VOICE_IDS.default;
     const voiceSettings = VOICE_SETTINGS[personaId as keyof typeof VOICE_SETTINGS] || VOICE_SETTINGS.default;
-
     console.log('🎙️ Voice settings:', { personaId, voiceId, voiceSettings });
 
-    // Call ElevenLabs API
+    // Call ElevenLabs TTS API
     const response = await fetch(`${ELEVENLABS_BASE_URL}/text-to-speech/${voiceId}`, {
       method: 'POST',
       headers: {
-        'Accept': 'audio/mpeg',
         'Content-Type': 'application/json',
         'xi-api-key': ELEVENLABS_API_KEY,
       },
@@ -104,6 +109,7 @@ export async function POST(request: NextRequest) {
 
     // Return the audio as a response
     return new NextResponse(audioBuffer, {
+      status: 200,
       headers: {
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'no-cache',

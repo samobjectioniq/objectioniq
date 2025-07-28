@@ -288,7 +288,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
   // Get persona-specific greeting
   const getPersonaGreeting = (persona: Persona): string => {
     const greetings = {
-      sarah: "Hi, this is Sarah. I'm calling about the insurance quote you requested. I know you're probably busy, so I'll keep this brief. What questions do you have?",
+      sarah: "Hello?",
       robert: "Hello, this is Robert Chen. I received your request for insurance information. I'd like to understand your business needs better. What specific coverage are you looking for?",
       linda: "Hi there, this is Linda. I'm calling about your insurance quote. I understand budget is important, so I want to make sure we find the right coverage for your family. What's your biggest concern right now?"
     };
