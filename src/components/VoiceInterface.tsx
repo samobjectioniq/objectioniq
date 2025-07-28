@@ -132,7 +132,7 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
 
     // Generate AI customer response
     await generateCustomerResponse(transcript);
-  }, []);
+  }, [generateCustomerResponse]);
 
   // Initialize speech recognition
   const initializeSpeechRecognition = useCallback(() => {

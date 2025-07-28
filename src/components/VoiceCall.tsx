@@ -273,7 +273,7 @@ export default function VoiceCall({ persona, onAgentResponse, onCustomerResponse
       
       synthesisRef.current.speak(utterance);
     }
-  }, [persona.id, callState.isMuted, callState.isConnected, initializeSpeechSynthesis, stopListening]);
+  }, [persona.id, callState.isMuted, callState.isConnected, initializeSpeechSynthesis, stopListening, startListening]);
 
   // Start call
   const startCall = useCallback(async () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import VoiceTraining from '@/components/VoiceTraining';
 import { Persona } from '@/types/persona';
@@ -38,7 +38,7 @@ const personas: Persona[] = [
   }
 ];
 
-export default function TrainingPage() {
+function TrainingContent() {
   const searchParams = useSearchParams();
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [showVoiceTraining, setShowVoiceTraining] = useState(false);
@@ -87,5 +87,20 @@ export default function TrainingPage() {
         <p className="text-gray-600">Click to start your call with {selectedPersona.name}</p>
       </div>
     </div>
+  );
+}
+
+export default function TrainingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Loading...</h1>
+          <p className="text-gray-600">Preparing your training session</p>
+        </div>
+      </div>
+    }>
+      <TrainingContent />
+    </Suspense>
   );
 } 

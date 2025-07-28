@@ -37,14 +37,13 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
 
   // Initialize speech recognition
   const initializeSpeechRecognition = useCallback(() => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
       setError('Speech recognition not supported in this browser');
       return false;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
-    
     recognitionRef.current.continuous = false;
     recognitionRef.current.interimResults = false;
     recognitionRef.current.lang = 'en-US';
@@ -54,9 +53,9 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
       setError(null);
     };
 
-    recognitionRef.current.onresult = async (event) => {
+    recognitionRef.current.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
-      setIsListening(false);
+      console.log('Speech recognized:', transcript);
       
       // Add user message to conversation
       const userMessage: ConversationMessage = {
@@ -66,17 +65,15 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
         timestamp: new Date()
       };
       setConversation(prev => [...prev, userMessage]);
-
-      // Get AI response
-      await generateAIResponse(transcript);
+      
+      // Generate AI response
+      generateAIResponse(transcript);
     };
 
-    recognitionRef.current.onerror = (event) => {
+    recognitionRef.current.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
+      setError('Speech recognition error: ' + event.error);
       setIsListening(false);
-      if (event.error !== 'no-speech') {
-        setError(`Speech recognition error: ${event.error}`);
-      }
     };
 
     recognitionRef.current.onend = () => {
@@ -84,7 +81,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
     };
 
     return true;
-  }, []);
+  }, [generateAIResponse]);
 
   // Initialize audio analysis for visual feedback
   const initializeAudioAnalysis = useCallback(async () => {
