@@ -156,7 +156,7 @@ export default function Home() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Start the Call</h3>
               <p className="text-gray-600">
-                Click "Start Call" and begin your practice session
+                Click &quot;Start Call&quot; and begin your practice session
               </p>
             </div>
 
