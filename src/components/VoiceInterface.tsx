@@ -15,6 +15,11 @@ import {
   getPersonaSpeechSettings,
   getErrorMessage
 } from '@/utils/speechUtils';
+import { 
+  generateElevenLabsSpeech, 
+  fallbackToBrowserTTS, 
+  playAudioBuffer 
+} from '@/utils/voiceApi';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import VoiceCallInterface from '@/components/VoiceCallInterface';
@@ -280,64 +285,76 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
     return selectedVoice;
   }, [persona.id]);
 
-  // Speak text (make AI customer speak)
-  const speakText = useCallback((text: string) => {
+  // Speak text (make AI customer speak) - Updated to use ElevenLabs
+  const speakText = useCallback(async (text: string) => {
     console.log('🔊 speakText called with:', text);
-    console.log('🔊 synthesisRef.current:', !!synthesisRef.current);
     
-    if (synthesisRef.current) {
-      const selectedVoice = initializeSpeechSynthesis();
-      const speechSettings = getPersonaSpeechSettings(persona.id);
-      const enhancedText = enhanceTextForSpeech(text);
-
-      console.log('🔊 Speech settings:', speechSettings);
-      console.log('🔊 Selected voice:', selectedVoice?.name);
-      console.log('🔊 Enhanced text:', enhancedText);
-
-      const utterance = new SpeechSynthesisUtterance(enhancedText);
+    // Try ElevenLabs first for high-quality voice
+    const audioBuffer = await generateElevenLabsSpeech(text, persona.id);
+    
+    if (audioBuffer) {
+      console.log('🎙️ Playing ElevenLabs audio...');
+      setCallState(prev => ({ ...prev, isSpeaking: true }));
+      stopListening();
       
-      // Apply persona-specific settings
-      utterance.rate = speechSettings.rate;
-      utterance.pitch = speechSettings.pitch;
-      utterance.volume = callState.isMuted ? 0 : speechSettings.volume;
-      
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
-      
-      utterance.onstart = () => {
-        console.log('🔊 Speech started');
-        setCallState(prev => ({ ...prev, isSpeaking: true }));
-        stopListening();
-      };
-      
-      utterance.onend = () => {
-        console.log('🔊 Speech ended');
+      try {
+        await playAudioBuffer(audioBuffer);
+        console.log('🎙️ ElevenLabs audio finished');
         setCallState(prev => ({ ...prev, isSpeaking: false }));
+        
         // Resume listening after speaking
         setTimeout(() => {
           if (callState.isConnected) {
-            console.log('🔊 Resuming listening after speech');
+            console.log('🔊 Resuming listening after ElevenLabs speech');
             startListening();
           }
         }, 500);
-      };
-      
-      utterance.onerror = (event) => {
-        console.error('🔊 Speech synthesis error:', event);
+      } catch (error) {
+        console.error('🎙️ Error playing ElevenLabs audio:', error);
         setCallState(prev => ({ ...prev, isSpeaking: false }));
-      };
-      
-      console.log('🔊 Starting speech synthesis...');
-      synthesisRef.current.speak(utterance);
+      }
     } else {
-      console.error('🔊 Speech synthesis not available');
-      setCallState(prev => ({ 
-        ...prev, 
-        error: 'Speech synthesis not available in this browser' 
-      }));
+      // Fallback to browser TTS
+      console.log('🔊 Using browser TTS fallback');
+      if (synthesisRef.current) {
+        fallbackToBrowserTTS(text, persona.id, synthesisRef.current);
+        
+        // Set up event handlers for browser TTS
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        utterance.onstart = () => {
+          console.log('🔊 Browser TTS started');
+          setCallState(prev => ({ ...prev, isSpeaking: true }));
+          stopListening();
+        };
+        
+        utterance.onend = () => {
+          console.log('🔊 Browser TTS ended');
+          setCallState(prev => ({ ...prev, isSpeaking: false }));
+          // Resume listening after speaking
+          setTimeout(() => {
+            if (callState.isConnected) {
+              console.log('🔊 Resuming listening after browser TTS');
+              startListening();
+            }
+          }, 500);
+        };
+        
+        utterance.onerror = (event) => {
+          console.error('🔊 Browser TTS error:', event);
+          setCallState(prev => ({ ...prev, isSpeaking: false }));
+        };
+        
+        synthesisRef.current.speak(utterance);
+      } else {
+        console.error('🔊 No speech synthesis available');
+        setCallState(prev => ({ 
+          ...prev, 
+          error: 'Speech synthesis not available in this browser' 
+        }));
+      }
     }
-  }, [persona.id, callState.isMuted, callState.isConnected, initializeSpeechSynthesis, stopListening, startListening]);
+  }, [persona.id, callState.isConnected, stopListening, startListening]);
 
   // Start call
   const startCall = useCallback(async () => {
