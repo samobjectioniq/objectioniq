@@ -6,7 +6,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@/components/auth/AuthModal';
 import UserProfile from '@/components/auth/UserProfile';
 import OnboardingTutorial from '@/components/OnboardingTutorial';
-import EngagementFeatures from '@/components/EngagementFeatures';
 import ROICalculator from '@/components/ROICalculator';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -16,7 +15,6 @@ export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showEngagement, setShowEngagement] = useState(false);
   const router = useRouter();
 
   const handleAuthClick = (mode: 'signin' | 'signup') => {
@@ -49,16 +47,6 @@ export default function Home() {
     setShowOnboarding(false);
     // Mark onboarding as completed in user profile
     // This would typically update the user's profile in the database
-  };
-
-  const handleShowAchievements = () => {
-    // Navigate to achievements page or show modal
-    console.log('Show achievements');
-  };
-
-  const handleShowGoals = () => {
-    // Navigate to goals page or show modal
-    console.log('Show goals');
   };
 
   if (loading) {
@@ -425,23 +413,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Welcome Back Section for Logged-in Users */}
-      {user && (
-        <section className="py-12 bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome back, {user.email?.split('@')[0]}!</h2>
-              <p className="text-gray-600">Continue your training and track your progress</p>
-            </div>
-            <div className="max-w-4xl mx-auto">
-              <EngagementFeatures 
-                onShowAchievements={handleShowAchievements}
-                onShowGoals={handleShowGoals}
-              />
-            </div>
-          </div>
-        </section>
-      )}
+
 
       {/* Professional Features Section */}
       <section id="features" className="py-24 bg-gray-50">
