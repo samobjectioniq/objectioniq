@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Phone, Target, TrendingUp, ArrowRight, LogIn } from 'lucide-react';
+import { Phone, Target, TrendingUp, ArrowRight, LogIn, Calculator } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@/components/auth/AuthModal';
+import ROICalculator from '@/components/ROICalculator';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
@@ -81,8 +82,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* ROI Calculator Section */}
       <section className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Calculator className="w-8 h-8 text-blue-600" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Calculate Your Training ROI
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              See how improved objection handling can impact your conversion rates and cost per sale
+            </p>
+          </div>
+          <ROICalculator />
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -128,7 +147,7 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
