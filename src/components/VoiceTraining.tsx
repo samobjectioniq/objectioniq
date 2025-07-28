@@ -49,7 +49,6 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
     recognitionRef.current.continuous = false;
     recognitionRef.current.interimResults = true; // Enable interim results for better feedback
     recognitionRef.current.lang = 'en-US';
-    recognitionRef.current.maxAlternatives = 1;
 
     recognitionRef.current.onstart = () => {
       setIsListening(true);
@@ -295,7 +294,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
 
       return () => clearTimeout(timer);
     }
-  }, [showSessionSummary]);
+  }, [showSessionSummary, handleSessionSummaryClose]);
 
   // Toggle microphone
   const toggleMicrophone = () => {
