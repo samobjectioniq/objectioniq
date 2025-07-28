@@ -35,6 +35,81 @@ export default function AgentVoiceTraining({ persona, onEndCall }: AgentVoiceTra
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const sendMessageToAgentRef = useRef<((message: string) => Promise<void>) | null>(null);
+
+  // Play agent's audio response
+  const playAgentAudio = useCallback(async (audioBase64: string) => {
+    try {
+      const audioBuffer = Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0));
+      const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      const audio = new Audio(audioUrl);
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+      
+      await audio.play();
+
+    } catch (error) {
+      console.error('Audio playback error:', error);
+      setIsSpeaking(false);
+    }
+  }, []);
+
+  // Send message to agent
+  const sendMessageToAgent = useCallback(async (message: string) => {
+    if (!sessionId) {
+      console.error('No agent session active');
+      return;
+    }
+
+    try {
+      setIsSpeaking(true);
+      
+      const response = await fetch('/api/elevenlabs-agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'send_message',
+          sessionId: sessionId,
+          message: message
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message to agent');
+      }
+
+      const data = await response.json();
+      
+      // Add agent message to conversation
+      if (data.text) {
+        const agentMessage: ConversationMessage = {
+          id: (Date.now() + 1).toString(),
+          speaker: 'agent',
+          text: data.text,
+          timestamp: new Date()
+        };
+        setConversation(prev => [...prev, agentMessage]);
+      }
+
+      // Play agent's audio response
+      if (data.audio) {
+        await playAgentAudio(data.audio);
+      } else {
+        setIsSpeaking(false);
+      }
+
+    } catch (error) {
+      console.error('Agent message error:', error);
+      setError('Failed to get agent response');
+      setIsSpeaking(false);
+    }
+  }, [sessionId, playAgentAudio]);
 
   // Initialize speech recognition
   const initializeSpeechRecognition = useCallback(() => {
@@ -69,7 +144,7 @@ export default function AgentVoiceTraining({ persona, onEndCall }: AgentVoiceTra
       setConversation(prev => [...prev, userMessage]);
 
       // Send message to agent
-      await sendMessageToAgent(transcript);
+      await sendMessageToAgentRef.current?.(transcript);
     };
 
     recognitionRef.current.onerror = (event) => {
@@ -85,7 +160,7 @@ export default function AgentVoiceTraining({ persona, onEndCall }: AgentVoiceTra
     };
 
     return true;
-  }, [sendMessageToAgent]);
+  }, []);
 
   // Initialize audio analysis for visual feedback
   const initializeAudioAnalysis = useCallback(async () => {
@@ -147,84 +222,13 @@ export default function AgentVoiceTraining({ persona, onEndCall }: AgentVoiceTra
     }
   };
 
-  // Send message to agent
-  const sendMessageToAgent = useCallback(async (message: string) => {
-    if (!sessionId) {
-      console.error('No agent session active');
-      return;
-    }
-
-    try {
-      setIsSpeaking(true);
-      
-      const response = await fetch('/api/elevenlabs-agent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'send_message',
-          sessionId: sessionId,
-          message: message
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send message to agent');
-      }
-
-      const data = await response.json();
-      
-      // Add agent message to conversation
-      if (data.text) {
-        const agentMessage: ConversationMessage = {
-          id: (Date.now() + 1).toString(),
-          speaker: 'agent',
-          text: data.text,
-          timestamp: new Date()
-        };
-        setConversation(prev => [...prev, agentMessage]);
-      }
-
-      // Play agent's audio response
-      if (data.audio) {
-        await playAgentAudio(data.audio);
-      } else {
-        setIsSpeaking(false);
-      }
-
-    } catch (error) {
-      console.error('Agent message error:', error);
-      setError('Failed to get agent response');
-      setIsSpeaking(false);
-    }
-  }, [sessionId, playAgentAudio]);
-
-  // Play agent's audio response
-  const playAgentAudio = useCallback(async (audioBase64: string) => {
-    try {
-      const audioBuffer = Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0));
-      const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      
-      const audio = new Audio(audioUrl);
-      audio.onended = () => {
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-      };
-      
-      await audio.play();
-
-    } catch (error) {
-      console.error('Audio playback error:', error);
-      setIsSpeaking(false);
-    }
-  }, []);
-
   // Start the call
   const startCall = async () => {
     setIsCallActive(true);
     setError(null);
+    
+    // Set the ref for sendMessageToAgent
+    sendMessageToAgentRef.current = sendMessageToAgent;
     
     // Initialize speech recognition
     if (!initializeSpeechRecognition()) {
