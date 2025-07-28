@@ -130,8 +130,10 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
 
   // Initialize speech recognition
   const initializeSpeechRecognition = useCallback(() => {
+    console.log('🎧 Initializing speech recognition...');
     const SpeechRecognition = getSpeechRecognition();
     if (!SpeechRecognition) {
+      console.error('🎧 Speech recognition not supported');
       setCallState(prev => ({ 
         ...prev, 
         error: 'Speech recognition not supported in this browser. Please use text input instead.' 
@@ -139,31 +141,38 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
       return;
     }
 
+    console.log('🎧 Creating speech recognition instance...');
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.continuous = false;
     recognitionRef.current.interimResults = true;
     recognitionRef.current.lang = 'en-US';
 
     recognitionRef.current.onstart = () => {
+      console.log('🎧 Speech recognition started');
       setCallState(prev => ({ ...prev, isListening: true, error: null }));
     };
 
     recognitionRef.current.onresult = (event: any) => {
+      console.log('🎧 Speech recognition result:', event.results);
       const transcript = Array.from(event.results)
         .map((result: any) => result[0].transcript)
         .join('');
       
+      console.log('🎧 Transcript:', transcript);
+      
       if (event.results[event.results.length - 1].isFinal) {
+        console.log('🎧 Final transcript:', transcript);
         handleAgentResponse(transcript);
       }
     };
 
     recognitionRef.current.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
+      console.error('🎧 Speech recognition error:', event.error);
       const errorMessage = getErrorMessage(event.error);
       
       // Don't show error for no-speech, just restart
       if (event.error === 'no-speech') {
+        console.log('🎧 No speech detected, restarting...');
         setCallState(prev => ({ ...prev, isListening: false }));
         setTimeout(() => {
           if (callState.isConnected && !callState.isSpeaking) {
@@ -181,16 +190,20 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
     };
 
     recognitionRef.current.onend = () => {
+      console.log('🎧 Speech recognition ended');
       setCallState(prev => ({ ...prev, isListening: false }));
       // Restart listening if call is still connected and not speaking
       if (callState.isConnected && !callState.isSpeaking) {
         setTimeout(() => {
           if (callState.isConnected && !callState.isSpeaking) {
+            console.log('🎧 Restarting speech recognition...');
             startListening();
           }
         }, 1000);
       }
     };
+    
+    console.log('🎧 Speech recognition initialized successfully');
   }, [callState.isConnected, callState.isSpeaking, handleAgentResponse, startListening]);
 
   // Initialize audio analysis for voice activity detection
@@ -240,24 +253,46 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
 
   // Initialize text-to-speech
   const initializeSpeechSynthesis = useCallback(() => {
+    console.log('🔊 Initializing speech synthesis...');
     const synthesis = getSpeechSynthesis();
-    if (!synthesis) return null;
+    if (!synthesis) {
+      console.error('🔊 Speech synthesis not available');
+      return null;
+    }
     
     synthesisRef.current = synthesis;
     
-    // Get available voices and select appropriate one for persona
+    // Wait for voices to load if they're not available yet
     const voices = synthesis.getVoices();
+    console.log('🔊 Available voices:', voices.length);
+    
+    if (voices.length === 0) {
+      console.log('🔊 No voices available, waiting for voices to load...');
+      synthesis.onvoiceschanged = () => {
+        console.log('🔊 Voices loaded:', synthesis.getVoices().length);
+      };
+    }
+    
+    // Get available voices and select appropriate one for persona
     const selectedVoice = selectVoiceForPersona(persona.id, voices);
+    console.log('🔊 Selected voice:', selectedVoice?.name);
     
     return selectedVoice;
   }, [persona.id]);
 
   // Speak text (make AI customer speak)
   const speakText = useCallback((text: string) => {
+    console.log('🔊 speakText called with:', text);
+    console.log('🔊 synthesisRef.current:', !!synthesisRef.current);
+    
     if (synthesisRef.current) {
       const selectedVoice = initializeSpeechSynthesis();
       const speechSettings = getPersonaSpeechSettings(persona.id);
       const enhancedText = enhanceTextForSpeech(text);
+
+      console.log('🔊 Speech settings:', speechSettings);
+      console.log('🔊 Selected voice:', selectedVoice?.name);
+      console.log('🔊 Enhanced text:', enhancedText);
 
       const utterance = new SpeechSynthesisUtterance(enhancedText);
       
@@ -271,36 +306,56 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
       }
       
       utterance.onstart = () => {
+        console.log('🔊 Speech started');
         setCallState(prev => ({ ...prev, isSpeaking: true }));
         stopListening();
       };
       
       utterance.onend = () => {
+        console.log('🔊 Speech ended');
         setCallState(prev => ({ ...prev, isSpeaking: false }));
         // Resume listening after speaking
         setTimeout(() => {
           if (callState.isConnected) {
+            console.log('🔊 Resuming listening after speech');
             startListening();
           }
         }, 500);
       };
       
       utterance.onerror = (event) => {
-        console.error('Speech synthesis error:', event);
+        console.error('🔊 Speech synthesis error:', event);
         setCallState(prev => ({ ...prev, isSpeaking: false }));
       };
       
+      console.log('🔊 Starting speech synthesis...');
       synthesisRef.current.speak(utterance);
+    } else {
+      console.error('🔊 Speech synthesis not available');
+      setCallState(prev => ({ 
+        ...prev, 
+        error: 'Speech synthesis not available in this browser' 
+      }));
     }
   }, [persona.id, callState.isMuted, callState.isConnected, initializeSpeechSynthesis, stopListening, startListening]);
 
   // Start call
   const startCall = useCallback(async () => {
     try {
+      console.log('🚀 Starting voice call...');
       setCallState(prev => ({ ...prev, isConnected: true, error: null, showCallInterface: true }));
       
+      // Initialize audio analysis first
+      console.log('🎤 Initializing audio analysis...');
       await initializeAudioAnalysis();
+      
+      // Initialize speech recognition
+      console.log('🎧 Initializing speech recognition...');
       initializeSpeechRecognition();
+      
+      // Initialize speech synthesis
+      console.log('🔊 Initializing speech synthesis...');
+      initializeSpeechSynthesis();
       
       // Start call timer
       callTimerRef.current = setInterval(() => {
@@ -312,13 +367,16 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
       showSuccess('Call Started', `Connected with ${persona.name}`);
       
       // Initial greeting
+      console.log('👋 Playing initial greeting...');
       const greeting = getPersonaGreeting(persona);
+      console.log('Greeting text:', greeting);
       speakText(greeting);
     } catch (error) {
+      console.error('❌ Error starting call:', error);
       showError('Call Failed', 'Unable to start call. Please check your microphone permissions.');
       await playError();
     }
-  }, [persona, initializeAudioAnalysis, initializeSpeechRecognition, speakText, showSuccess, showError]);
+  }, [persona, initializeAudioAnalysis, initializeSpeechRecognition, initializeSpeechSynthesis, speakText, showSuccess, showError]);
 
   // End call
   const endCall = useCallback(async () => {
@@ -392,25 +450,33 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
 
   const generateCustomerResponse = async (agentResponse: string) => {
     try {
+      console.log('🤖 Generating customer response for:', agentResponse);
       setIsLoading(true);
+      
+      const requestBody = {
+        message: agentResponse,
+        personaId: persona.id,
+        conversationHistory: conversation.slice(-10) // Last 10 messages for context
+      };
+      
+      console.log('🤖 API request body:', requestBody);
       
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          message: agentResponse,
-          personaId: persona.id,
-          conversationHistory: conversation.slice(-10) // Last 10 messages for context
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log('🤖 API response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to generate response');
+        throw new Error(`API request failed with status ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('🤖 API response data:', data);
       
       const customerMessage: ConversationMessage = {
         id: Date.now().toString(),
@@ -423,11 +489,14 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
       
       // Make AI customer speak the response
       if (callState.isConnected) {
+        console.log('🤖 Making AI customer speak response:', data.response);
         speakText(data.response);
+      } else {
+        console.log('🤖 Call not connected, skipping speech');
       }
       
     } catch (error) {
-      console.error('Error generating customer response:', error);
+      console.error('🤖 Error generating customer response:', error);
       showError('Response Failed', 'Unable to generate customer response. Please try again.');
     } finally {
       setIsLoading(false);
