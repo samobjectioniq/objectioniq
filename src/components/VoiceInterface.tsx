@@ -84,6 +84,8 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
   const microphoneRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const audioLevelRef = useRef<NodeJS.Timeout | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const handleAgentResponseRef = useRef<((transcript: string) => Promise<void>) | null>(null);
 
   // Check browser compatibility on mount
   useEffect(() => {
@@ -115,24 +117,6 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
       recognitionRef.current.stop();
     }
   }, []);
-
-  const handleAgentResponse = useCallback(async (transcript: string) => {
-    const agentMessage: ConversationMessage = {
-      id: Date.now().toString(),
-      speaker: 'agent',
-      content: transcript,
-      timestamp: new Date()
-    };
-
-    setConversation(prev => [...prev, agentMessage]);
-    setSessionStats(prev => ({
-      ...prev,
-      responsesCount: prev.responsesCount + 1
-    }));
-
-    // Generate AI customer response
-    await generateCustomerResponse(transcript);
-  }, [generateCustomerResponse]);
 
   // Initialize speech recognition
   const initializeSpeechRecognition = useCallback(() => {
@@ -168,7 +152,7 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
       
       if (event.results[event.results.length - 1].isFinal) {
         console.log('🎧 Final transcript:', transcript);
-        handleAgentResponse(transcript);
+        handleAgentResponseRef.current?.(transcript);
       }
     };
 
@@ -210,7 +194,7 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
     };
     
     console.log('🎧 Speech recognition initialized successfully');
-  }, [callState.isConnected, callState.isSpeaking, handleAgentResponse, startListening]);
+  }, [callState.isConnected, callState.isSpeaking, startListening]);
 
   // Initialize audio analysis for voice activity detection
   const initializeAudioAnalysis = useCallback(async () => {
@@ -357,6 +341,86 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
     }
   }, [persona.id, callState.isConnected, stopListening, startListening]);
 
+  // Generate AI customer response
+  const generateCustomerResponse = useCallback(async (agentResponse: string) => {
+    try {
+      console.log('🤖 Generating customer response for:', agentResponse);
+      setIsLoading(true);
+      
+      const requestBody = {
+        message: agentResponse,
+        personaId: persona.id,
+        conversationHistory: conversation.slice(-10) // Last 10 messages for context
+      };
+      
+      console.log('🤖 API request body:', requestBody);
+      
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('🤖 API response status:', response.status);
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('🤖 API response data:', data);
+      
+      const customerMessage: ConversationMessage = {
+        id: Date.now().toString(),
+        speaker: 'customer',
+        content: data.response,
+        timestamp: new Date()
+      };
+
+      setConversation(prev => [...prev, customerMessage]);
+      
+      // Make AI customer speak the response
+      if (callState.isConnected) {
+        console.log('🤖 Making AI customer speak response:', data.response);
+        speakText(data.response);
+      } else {
+        console.log('🤖 Call not connected, skipping speech');
+      }
+      
+    } catch (error) {
+      console.error('🤖 Error generating customer response:', error);
+      showError('Response Failed', 'Unable to generate customer response. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [persona.id, conversation, callState.isConnected, speakText, showError]);
+
+  // Handle agent response (user speaking)
+  const handleAgentResponse = useCallback(async (transcript: string) => {
+    const agentMessage: ConversationMessage = {
+      id: Date.now().toString(),
+      speaker: 'agent',
+      content: transcript,
+      timestamp: new Date()
+    };
+
+    setConversation(prev => [...prev, agentMessage]);
+    setSessionStats(prev => ({
+      ...prev,
+      responsesCount: prev.responsesCount + 1
+    }));
+
+    // Generate AI customer response
+    await generateCustomerResponse(transcript);
+  }, [generateCustomerResponse]);
+
+  // Assign function to ref
+  useEffect(() => {
+    handleAgentResponseRef.current = handleAgentResponse;
+  }, [handleAgentResponse]);
+
   // Start call
   const startCall = useCallback(async () => {
     try {
@@ -476,61 +540,6 @@ export default function VoiceInterface({ persona, onSessionUpdate, onEndSession,
       onConversationUpdate(conversation);
     }
   }, [conversation, onConversationUpdate]);
-
-  const generateCustomerResponse = async (agentResponse: string) => {
-    try {
-      console.log('🤖 Generating customer response for:', agentResponse);
-      setIsLoading(true);
-      
-      const requestBody = {
-        message: agentResponse,
-        personaId: persona.id,
-        conversationHistory: conversation.slice(-10) // Last 10 messages for context
-      };
-      
-      console.log('🤖 API request body:', requestBody);
-      
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      console.log('🤖 API response status:', response.status);
-
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('🤖 API response data:', data);
-      
-      const customerMessage: ConversationMessage = {
-        id: Date.now().toString(),
-        speaker: 'customer',
-        content: data.response,
-        timestamp: new Date()
-      };
-
-      setConversation(prev => [...prev, customerMessage]);
-      
-      // Make AI customer speak the response
-      if (callState.isConnected) {
-        console.log('🤖 Making AI customer speak response:', data.response);
-        speakText(data.response);
-      } else {
-        console.log('🤖 Call not connected, skipping speech');
-      }
-      
-    } catch (error) {
-      console.error('🤖 Error generating customer response:', error);
-      showError('Response Failed', 'Unable to generate customer response. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleTextSubmit = (e: React.FormEvent) => {
     e.preventDefault();
