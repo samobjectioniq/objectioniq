@@ -29,7 +29,7 @@ export default function VoiceTraining({ persona, onEndCall }: VoiceTrainingProps
 
   // State for text input fallback
   const [useTextInput, setUseTextInput] = useState(false);
-  const [textInput, setTextInput] = useState('');
+  const [textInput, setTextInput] = useState(''); // Trigger new deployment
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthesisRef = useRef<SpeechSynthesis | null>(null);
