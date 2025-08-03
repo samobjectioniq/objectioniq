@@ -3,38 +3,37 @@ import { NextRequest, NextResponse } from 'next/server';
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 const ELEVENLABS_BASE_URL = 'https://api.elevenlabs.io/v1';
 
-// Voice IDs for different personas
+// Voice IDs for different personas (using working IDs)
 const VOICE_IDS = {
   sarah: '21m00Tcm4TlvDq8ikWAM', // Sarah Mitchell's voice ID
   robert: 'pNInz6obpgDQGcFmaJgB', // Robert Chen
   linda: 'AZnzlk1XvdvUeBnXmlld', // Linda Rodriguez
-  'david-thompson': 'EXAVITQu4vr4xnSDxMaL', // David Thompson
   default: '21m00Tcm4TlvDq8ikWAM' // Default to Sarah's voice
 };
 
 // Voice settings for natural conversation
 const VOICE_SETTINGS = {
   sarah: {
-    stability: 0.5,
-    similarity_boost: 0.75,
+    stability: 0.4, // Lower stability for faster generation
+    similarity_boost: 0.7, // Slightly lower for speed
     style: 0.0,
     use_speaker_boost: true,
-    speed: 1.2 // Speed up Sarah's voice by 20%
+    speed: 1.2 // Speed up Sarah's voice by 20% (max allowed)
   },
-  robert: {
-    stability: 0.6,
-    similarity_boost: 0.75,
-    style: 0.0,
-    use_speaker_boost: true,
-    speed: 1.1
-  },
-  linda: {
-    stability: 0.5,
-    similarity_boost: 0.75,
-    style: 0.0,
-    use_speaker_boost: true,
-    speed: 1.1
-  },
+      robert: {
+      stability: 0.5, // Lower for speed
+      similarity_boost: 0.7, // Lower for speed
+      style: 0.0,
+      use_speaker_boost: true,
+      speed: 1.1 // Faster speech
+    },
+    linda: {
+      stability: 0.4, // Lower for speed
+      similarity_boost: 0.7, // Lower for speed
+      style: 0.0,
+      use_speaker_boost: true,
+      speed: 1.1 // Faster speech
+    },
   'david-thompson': {
     stability: 0.7,
     similarity_boost: 0.75,

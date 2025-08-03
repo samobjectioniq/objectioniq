@@ -32,65 +32,13 @@ interface ChatRequest {
   }>;
 }
 
-// Enhanced persona prompts with better character development
+// Optimized persona prompts for natural conversation flow
 const personaPrompts: Record<string, string> = {
-  sarah: `You are Sarah Mitchell, a 28-year-old Marketing Manager who requested insurance quotes online. You are receiving a phone call from an insurance agent. You start by saying "Hello?" or "Hi, this is Sarah." You are busy, price-conscious, and give realistic objections. You sound like a real person having a phone conversation.
+  sarah: `You are Sarah Mitchell, 28, Marketing Manager. Fast talker, impatient, price-focused. Quick responses (1-2 sentences). Use phrases like "Look, I don't have much time," "Bottom line, what's this going to cost me?" "Yeah, yeah, but how much?" Natural rush: "I really need to wrap this up." Sound rushed and skeptical.`,
 
-Key characteristics:
-- Busy professional who values her time
-- Price-conscious and budget-aware
-- Skeptical of sales calls and interruptions
-- Wants quick, direct answers without pressure
-- Prefers digital/online processes for quotes
+  robert: `You are Robert Chen, 45, small business owner. Measured speech, analytical, methodical. Use phrases like "Let me think about that for a moment," "I'd like to understand the details before deciding," "Let me break this down." Professional hesitations: "Hmm, I see your point, but..." Sound thoughtful and cautious.`,
 
-Common objections:
-- "I was just comparing prices online."
-- "I don't have much time right now."
-- "Can you just email me a quote?"
-- "What's your best price?"
-- "I'm not really looking to switch, just curious."
-- "That sounds expensive."
-- "I need to think about it."
-
-Respond naturally as Sarah, using contractions and casual language. Keep responses short (1-2 sentences) and stay in character as someone receiving a sales call. Start with a natural phone greeting like "Hello?" or "Hi, this is Sarah."`,
-
-  robert: `You are Robert Chen, a 45-year-old small business owner who received an insurance call. You are detail-oriented, risk-averse, and ask many questions. You're loyal to your current provider and suspicious of change.
-
-Key characteristics:
-- Detail-oriented and asks specific questions
-- Risk-averse and cautious
-- Loyal to current provider
-- Suspicious of sales pitches
-- Wants to understand everything
-
-Common responses:
-- "I've been with my current provider for years"
-- "What exactly does this cover?"
-- "How does this compare to what I have?"
-- "I need to see the details first"
-- "What aren't you telling me?"
-- "My current provider has been good to me"
-
-Respond naturally as Robert, showing caution and asking detailed questions. Keep responses conversational but questioning.`,
-
-  linda: `You are Linda Rodriguez, a 32-year-old teacher who received an insurance call. You are budget-focused, family-oriented, and concerned about costs. You want the best value for your family.
-
-Key characteristics:
-- Budget-focused and cost-conscious
-- Family-oriented and protective
-- Wants to understand value
-- Concerned about affordability
-- Asks about family coverage
-
-Common responses:
-- "How much does this cost?"
-- "Is this the best price you can offer?"
-- "What about coverage for my kids?"
-- "I need to stay within my budget"
-- "Can you explain the value?"
-- "I need to discuss this with my husband"
-
-Respond naturally as Linda, showing concern for family and budget. Keep responses warm but focused on cost and family protection.`
+  linda: `You are Linda Rodriguez, 32, teacher. Warm tone, family-focused, budget-conscious. Use phrases like "Well, that's something to consider," "My husband always says we should be careful," "My family's safety is important." Gentle objections: "That sounds wonderful, but our budget is tight." Sound warm but concerned.`
 };
 
 // Persona metadata for backward compatibility
@@ -185,6 +133,37 @@ const fallbackResponses: Record<string, string[]> = {
   ]
 };
 
+// Cached common responses for instant replies
+const cachedResponses: Record<string, Record<string, string[]>> = {
+  sarah: {
+    greetings: ["Hello?", "Hi, this is Sarah.", "Yeah, what is it?"],
+    price_questions: ["How much is this going to cost me?", "What's the bottom line?", "Yeah, yeah, but how much?"],
+    busy_responses: ["Look, I don't have much time.", "I really need to wrap this up.", "Can you just get to the point?"],
+    objections: ["I was just comparing prices online.", "That sounds expensive.", "Can you just email me a quote?"]
+  },
+  robert: {
+    greetings: ["Hello, this is Robert Chen.", "Yes, how can I help you?"],
+    analytical: ["Let me think about that for a moment.", "I'd like to understand the details before deciding."],
+    questions: ["What exactly does this cover?", "How does this compare to what I have?", "I've been with my current provider for years."],
+    objections: ["I need to see the details first.", "What aren't you telling me?", "My current provider has been good to me."]
+  },
+  linda: {
+    greetings: ["Hello, this is Linda.", "Hi there, how are you?"],
+    family: ["My family's safety is important.", "I need to discuss this with my husband.", "What about coverage for my kids?"],
+    budget: ["How much does this cost?", "I need to stay within my budget.", "That sounds wonderful, but our budget is tight."],
+    objections: ["Well, that's something to consider.", "My husband always says we should be careful.", "I need to think about this."]
+  }
+};
+
+// Get a cached response for common scenarios
+const getCachedResponse = (personaId: string, scenario: string): string | null => {
+  const personaCache = cachedResponses[personaId];
+  if (!personaCache || !personaCache[scenario]) return null;
+  
+  const responses = personaCache[scenario];
+  return responses[Math.floor(Math.random() * responses.length)];
+};
+
 // Get a random fallback response for a persona
 const getRandomFallbackResponse = (personaId: string): string => {
   const responses = fallbackResponses[personaId] || fallbackResponses.sarah;
@@ -254,6 +233,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(error, { status: 400 });
     }
 
+    // Check for cached responses for common scenarios
+    const lowerMessage = message.toLowerCase();
+    
+    // Greeting detection
+    if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('calling')) {
+      const cachedGreeting = getCachedResponse(personaId, 'greetings');
+      if (cachedGreeting) {
+        const result = { response: cachedGreeting, cached: true };
+        logResponse(result, Date.now() - startTime);
+        return NextResponse.json(result);
+      }
+    }
+    
+    // Price question detection
+    if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('how much') || lowerMessage.includes('what is the price')) {
+      const cachedPrice = getCachedResponse(personaId, 'price_questions');
+      if (cachedPrice) {
+        const result = { response: cachedPrice, cached: true };
+        logResponse(result, Date.now() - startTime);
+        return NextResponse.json(result);
+      }
+    }
+    
+    // Busy response detection
+    if (lowerMessage.includes('time') || lowerMessage.includes('busy') || lowerMessage.includes('hurry')) {
+      const cachedBusy = getCachedResponse(personaId, 'busy_responses');
+      if (cachedBusy) {
+        const result = { response: cachedBusy, cached: true };
+        logResponse(result, Date.now() - startTime);
+        return NextResponse.json(result);
+      }
+    }
+
     // Get persona metadata
     const persona = personaMetadata[personaId];
 
@@ -267,27 +279,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response);
     }
 
-    // Build enhanced system prompt
+    // Build optimized system prompt for speed
     const systemPrompt = `${personaPrompts[personaId]}
 
-IMPORTANT: Respond as ${persona.name} in a natural, conversational way. Use contractions and sound like a real person. Keep responses short (1-2 sentences maximum). Stay in character and make objections realistic for your persona. Do not break character or mention that you are an AI.`;
+Respond as ${persona.name}. Keep responses to 1-2 sentences max. Sound natural and conversational.`;
 
-    // Build user prompt with conversation context
+    // Build optimized user prompt for speed - only last message for fastest response
     const conversationContext = conversationHistory.length > 0 
-      ? `\nPrevious conversation:\n${conversationHistory.map((msg: any) => 
+      ? `\nLast: ${conversationHistory.slice(-1).map((msg: any) => 
           `${msg.role === 'user' ? 'Agent' : persona.name}: ${msg.content}`
-        ).join('\n')}\n`
+        ).join('')}\n`
       : '';
 
-    const userPrompt = `${conversationContext}Agent's latest message: "${message}"
+    const userPrompt = `${conversationContext}Agent: "${message}"
 
-Respond as ${persona.name} to the agent's message:`;
+${persona.name}:`;
 
-    // Make API call with enhanced configuration
+    // Make API call with optimized configuration for speed
     const apiResponse = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 150,
-      temperature: 0.7,
+      max_tokens: 80, // Reduced for faster responses
+      temperature: 0.8, // Slightly higher for more natural responses
       system: systemPrompt,
       messages: [
         {
