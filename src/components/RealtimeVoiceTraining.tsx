@@ -129,48 +129,6 @@ export default function RealtimeVoiceTraining({ persona, onEndCall }: RealtimeVo
     }
   }, [isListening, setAudioLevel]);
 
-  // Process audio input (placeholder - would need speech-to-text)
-  const processAudioInput = useCallback(async (audioBlob: Blob) => {
-    try {
-      setIsListening(false);
-      setIsSpeaking(true);
-      
-      console.log('🎙️ Processing audio input...');
-      
-      // For now, we'll use a placeholder text input
-      // In a real implementation, this would use speech-to-text
-      const placeholderText = "Hello, I'm calling about the insurance quote I requested online.";
-      
-      // Add user message to conversation
-      const userMessage: ConversationMessage = {
-        id: Date.now().toString(),
-        speaker: 'user',
-        text: placeholderText,
-        timestamp: new Date(),
-      };
-      
-      setConversation(prev => [...prev, userMessage]);
-      
-      // Send to streaming API
-      await sendTextMessage(placeholderText);
-      
-    } catch (error: any) {
-      console.error('❌ Process audio error:', error);
-      setError(`Failed to process audio: ${error.message}`);
-    } finally {
-      setIsSpeaking(false);
-      setIsListening(true);
-    }
-  }, [sendTextMessage]);
-
-  // Assign functions to refs
-  useEffect(() => {
-    processAudioInputRef.current = processAudioInput;
-    updateAudioLevelRef.current = updateAudioLevel;
-  }, [processAudioInput, updateAudioLevel]);
-
-
-
   // Send text message using streaming API
   const sendTextMessage = useCallback(async (text: string) => {
     try {
@@ -253,6 +211,46 @@ export default function RealtimeVoiceTraining({ persona, onEndCall }: RealtimeVo
       setError(`Failed to send message: ${error.message}`);
     }
   }, [setError]);
+
+  // Process audio input (placeholder - would need speech-to-text)
+  const processAudioInput = useCallback(async (audioBlob: Blob) => {
+    try {
+      setIsListening(false);
+      setIsSpeaking(true);
+      
+      console.log('🎙️ Processing audio input...');
+      
+      // For now, we'll use a placeholder text input
+      // In a real implementation, this would use speech-to-text
+      const placeholderText = "Hello, I'm calling about the insurance quote I requested online.";
+      
+      // Add user message to conversation
+      const userMessage: ConversationMessage = {
+        id: Date.now().toString(),
+        speaker: 'user',
+        text: placeholderText,
+        timestamp: new Date(),
+      };
+      
+      setConversation(prev => [...prev, userMessage]);
+      
+      // Send to streaming API
+      await sendTextMessage(placeholderText);
+      
+    } catch (error: any) {
+      console.error('❌ Process audio error:', error);
+      setError(`Failed to process audio: ${error.message}`);
+    } finally {
+      setIsSpeaking(false);
+      setIsListening(true);
+    }
+  }, [sendTextMessage]);
+
+  // Assign functions to refs
+  useEffect(() => {
+    processAudioInputRef.current = processAudioInput;
+    updateAudioLevelRef.current = updateAudioLevel;
+  }, [processAudioInput, updateAudioLevel]);
 
   // Start realtime session
   const startCall = async () => {
