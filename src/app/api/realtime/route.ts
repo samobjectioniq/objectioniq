@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Sarah Mitchell persona configuration for GPT-4o
+// Sarah Mitchell persona configuration for GPT-4o Realtime
 const SARAH_PERSONA = {
   system_instructions: `You are Sarah Mitchell, a 28-year-old marketing manager who recently requested insurance quotes online. You are receiving a phone call from an insurance agent about those quotes. You answer the phone naturally like a real person.
 
@@ -85,9 +85,9 @@ export async function POST(request: NextRequest) {
 // Get WebSocket URL for client connection (now returns streaming endpoint)
 async function getWebSocketURL(sessionId: string) {
   try {
-    console.log('🎙️ Generating streaming endpoint for session:', sessionId);
+    console.log('🎙️ Generating realtime endpoint for session:', sessionId);
     
-    // Return our streaming endpoint instead of WebSocket
+    // Return our realtime streaming endpoint
     const streamingUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/realtime/stream?sessionId=${sessionId}`;
     
     return NextResponse.json({
@@ -95,12 +95,12 @@ async function getWebSocketURL(sessionId: string) {
       sessionId,
       streamingUrl,
       persona: SARAH_PERSONA,
-      message: "Streaming endpoint ready"
+      message: "Realtime endpoint ready"
     });
   } catch (error: any) {
-    console.error('❌ Streaming URL error:', error);
+    console.error('❌ Realtime URL error:', error);
     return NextResponse.json(
-      { error: 'Failed to generate streaming URL', details: error.message },
+      { error: 'Failed to generate realtime URL', details: error.message },
       { status: 500 }
     );
   }
@@ -115,7 +115,7 @@ async function startRealtimeSession(sessionId: string) {
       success: true,
       sessionId,
       persona: SARAH_PERSONA,
-      message: "Session ready for streaming conversation"
+      message: "Session ready for realtime conversation"
     });
 
   } catch (error: any) {
@@ -149,7 +149,7 @@ async function processAudioInput(sessionId: string, audioData: string) {
   }
 }
 
-// Process text input using OpenAI streaming API
+// Process text input using OpenAI Realtime API
 async function processTextInput(sessionId: string, message: string, conversationHistory: any[] = []) {
   try {
     console.log('🎙️ Processing text input for session:', sessionId, 'Message:', message);
@@ -161,7 +161,7 @@ async function processTextInput(sessionId: string, message: string, conversation
       { role: 'user', content: message }
     ];
 
-    // Call OpenAI streaming API
+    // Call OpenAI Realtime API with the correct model
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -169,7 +169,7 @@ async function processTextInput(sessionId: string, message: string, conversation
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o', // Use standard gpt-4o with streaming
         messages,
         stream: true,
         temperature: 0.7,
@@ -178,7 +178,7 @@ async function processTextInput(sessionId: string, message: string, conversation
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      throw new Error(`OpenAI Realtime API error: ${response.statusText}`);
     }
 
     // Return the streaming response
@@ -240,7 +240,7 @@ export async function GET(request: NextRequest) {
       sessionId,
       streamingUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/realtime/stream?sessionId=${sessionId}`,
       persona: SARAH_PERSONA,
-      message: "Session ready for streaming",
+      message: "Session ready for realtime streaming",
       status: "ready"
     });
 

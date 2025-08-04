@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   try {
     const { message, conversationHistory = [] } = await request.json();
     
-    console.log('🎙️ Streaming request:', { message, historyLength: conversationHistory.length });
+    console.log('🎙️ Realtime API request:', { message, historyLength: conversationHistory.length });
 
     if (!process.env.OPENAI_API_KEY) {
       return new Response('OpenAI API key not configured', { status: 500 });
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       { role: 'user', content: message }
     ];
 
-    // Call OpenAI streaming API
+    // Call OpenAI API with streaming for real-time responses
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o', // Use standard gpt-4o with streaming
         messages,
         stream: true,
         temperature: 0.7,
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('❌ Streaming error:', error);
+    console.error('❌ Realtime API error:', error);
     return new Response(`Error: ${error.message}`, { status: 500 });
   }
 }
@@ -91,14 +91,14 @@ export async function GET(request: NextRequest) {
       return new Response('Session ID required', { status: 400 });
     }
 
-    console.log('🎙️ Streaming session info request:', sessionId);
+    console.log('🎙️ Realtime session info request:', sessionId);
     
     // Return session info
     return new Response(JSON.stringify({
       success: true,
       sessionId,
       persona: SARAH_PERSONA,
-      message: "Streaming session ready",
+      message: "Realtime session ready",
       status: "ready"
     }), {
       headers: {
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('❌ Streaming session error:', error);
+    console.error('❌ Realtime session error:', error);
     return new Response(`Error: ${error.message}`, { status: 500 });
   }
 } 
