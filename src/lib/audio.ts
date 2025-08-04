@@ -148,7 +148,7 @@ export async function streamTextToSpeech(
       
       // Send chunk as it arrives
       onChunk({
-        audio: value.buffer,
+        audio: value.buffer.slice(0),
         text: text,
         isComplete: false,
       });
@@ -163,7 +163,7 @@ export async function streamTextToSpeech(
     }
 
     onChunk({
-      audio: completeAudio.buffer,
+      audio: completeAudio.buffer.slice(0),
       text: text,
       isComplete: true,
     });
