@@ -38,6 +38,111 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
   const animationFrameRef = useRef<number | null>(null);
   const processUserSpeechRef = useRef<((audioBlob: Blob) => Promise<void>) | null>(null);
 
+  // Get AI response with streaming
+  const getAIResponse = useCallback(async (userMessage: string) => {
+    try {
+      console.log('🧠 Getting AI response...');
+      setCurrentResponse('');
+      
+      const response = await fetch('/api/voice/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage,
+          conversationHistory: conversationHistoryRef.current,
+          persona: persona,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      let fullResponse = '';
+      let currentSentence = '';
+      const sentenceQueue: string[] = [];
+      let isProcessingSentence = false;
+
+      // Process streaming response
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+        
+        const chunk = new TextDecoder().decode(value);
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') break;
+            
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.choices?.[0]?.delta?.content) {
+                const content = parsed.choices[0].delta.content;
+                fullResponse += content;
+                currentSentence += content;
+                setCurrentResponse(fullResponse);
+
+                // Check if we have a complete sentence
+                const sentences = splitIntoSentences(currentSentence);
+                if (sentences.length > 1) {
+                  // We have a complete sentence
+                  const completeSentence = sentences[0];
+                  sentenceQueue.push(completeSentence);
+                  currentSentence = sentences.slice(1).join(' ');
+                  
+                  // Process sentence queue
+                  if (!isProcessingSentence) {
+                    processSentenceQueue(sentenceQueue);
+                  }
+                }
+              }
+            } catch (e) {
+              // Ignore parsing errors for partial chunks
+            }
+          }
+        }
+      }
+
+      // Process any remaining text
+      if (currentSentence.trim()) {
+        sentenceQueue.push(currentSentence.trim());
+        if (!isProcessingSentence) {
+          processSentenceQueue(sentenceQueue);
+        }
+      }
+
+      // Add AI response to conversation
+      const aiMessage: ConversationMessage = {
+        id: Date.now().toString(),
+        speaker: 'ai',
+        text: fullResponse,
+        timestamp: new Date(),
+      };
+      
+      setConversation(prev => [...prev, aiMessage]);
+      conversationHistoryRef.current.push(
+        { role: 'user', content: userMessage },
+        { role: 'assistant', content: fullResponse }
+      );
+
+      setCurrentResponse('');
+
+      console.log('🧠 AI response complete:', fullResponse);
+
+    } catch (error: any) {
+      console.error('❌ Get AI response error:', error);
+      onError(`Failed to get AI response: ${error.message}`);
+    }
+  }, [persona, onError, processSentenceQueue]);
+
   // Initialize audio context and microphone
   const initializeAudio = useCallback(async () => {
     try {
@@ -160,108 +265,7 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
 
 
 
-  // Get AI response with streaming
-  const getAIResponse = useCallback(async (userMessage: string) => {
-    try {
-      console.log('🧠 Getting AI response...');
-      setCurrentResponse('');
-      
-      const response = await fetch('/api/voice/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: userMessage,
-          conversationHistory: conversationHistoryRef.current,
-          persona: persona,
-        }),
-      });
 
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No response body');
-      }
-
-      let fullResponse = '';
-      let currentSentence = '';
-      const sentenceQueue: string[] = [];
-      let isProcessingSentence = false;
-
-      // Process streaming response
-      while (true) {
-        const { done, value } = await reader.read();
-        
-        if (done) break;
-        
-        const chunk = new TextDecoder().decode(value);
-        const lines = chunk.split('\n');
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') break;
-            
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.choices?.[0]?.delta?.content) {
-                const content = parsed.choices[0].delta.content;
-                fullResponse += content;
-                currentSentence += content;
-                setCurrentResponse(fullResponse);
-
-                // Check if we have a complete sentence
-                const sentences = splitIntoSentences(currentSentence);
-                if (sentences.length > 1) {
-                  // We have a complete sentence
-                  const completeSentence = sentences[0];
-                  sentenceQueue.push(completeSentence);
-                  currentSentence = sentences.slice(1).join(' ');
-                  
-                  // Process sentence queue
-                  if (!isProcessingSentence) {
-                    processSentenceQueue(sentenceQueue);
-                  }
-                }
-              }
-            } catch (e) {
-              // Ignore parsing errors for partial chunks
-            }
-          }
-        }
-      }
-
-      // Process any remaining text
-      if (currentSentence.trim()) {
-        sentenceQueue.push(currentSentence.trim());
-        if (!isProcessingSentence) {
-          processSentenceQueue(sentenceQueue);
-        }
-      }
-
-      // Add AI response to conversation
-      const aiMessage: ConversationMessage = {
-        id: Date.now().toString(),
-        speaker: 'ai',
-        text: fullResponse,
-        timestamp: new Date(),
-      };
-      
-      setConversation(prev => [...prev, aiMessage]);
-      conversationHistoryRef.current.push(
-        { role: 'user', content: userMessage },
-        { role: 'assistant', content: fullResponse }
-      );
-
-      setCurrentResponse('');
-
-    } catch (error: any) {
-      console.error('❌ Get AI response error:', error);
-      onError(`Failed to get AI response: ${error.message}`);
-    }
-  }, [persona, onError, processSentenceQueue]);
 
   // Process sentence queue for TTS
   const processSentenceQueue = useCallback(async (queue: string[]) => {
