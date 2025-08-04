@@ -7,8 +7,8 @@ export interface Persona {
   characteristics: string[];
   color: 'blue' | 'green' | 'purple' | 'red' | 'orange';
   avatar: string;
-  voiceId?: string;
-  systemPrompt?: string;
+  voiceId?: string; // allow undefined
+  systemPrompt: string;
   objections?: string[];
 }
 

@@ -147,10 +147,10 @@ export async function streamTextToSpeech(
       audioChunks.push(value);
       
       // Send chunk as it arrives
-      const audioBuffer = new ArrayBuffer(value.buffer.byteLength);
-      new Uint8Array(audioBuffer).set(value);
       onChunk({
-        audio: audioBuffer,
+        audio: value.buffer instanceof ArrayBuffer
+          ? value.buffer.slice(0)
+          : new ArrayBuffer(0), // handle SharedArrayBuffer
         text: text,
         isComplete: false,
       });
@@ -164,10 +164,10 @@ export async function streamTextToSpeech(
       offset += chunk.length;
     }
 
-    const finalAudioBuffer = new ArrayBuffer(completeAudio.buffer.byteLength);
-    new Uint8Array(finalAudioBuffer).set(completeAudio);
     onChunk({
-      audio: finalAudioBuffer,
+      audio: completeAudio.buffer instanceof ArrayBuffer
+        ? completeAudio.buffer.slice(0)
+        : new ArrayBuffer(0), // handle SharedArrayBuffer
       text: text,
       isComplete: true,
     });
