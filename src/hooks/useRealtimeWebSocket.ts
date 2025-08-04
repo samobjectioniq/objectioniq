@@ -11,7 +11,7 @@ interface UseRealtimeWebSocketProps {
 
 export default function useRealtimeWebSocket({ sessionId, onMessage, onError, onClose }: UseRealtimeWebSocketProps) {
   const [isConnected, setIsConnected] = useState(false);
-  const [isConnecting, setIsConnecting] => useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const mounted = useRef(false);
   const conversationHistory = useRef<any[]>([]);
 

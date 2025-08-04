@@ -257,7 +257,7 @@ export default function VoiceAvatar({ persona, onEndCall }: VoiceAvatarProps) {
             <p>• Speak naturally when you see "Listening to you..."</p>
             <p>• {persona.name} will respond with realistic objections</p>
             <p>• Practice overcoming common sales objections</p>
-            <p>• Try phrases like "Why is your rate so high?" or "I already have coverage"</p>
+            <p>• Try phrases like &quot;Why is your rate so high?&quot; or &quot;I already have coverage&quot;</p>
           </div>
         </div>
       </div>

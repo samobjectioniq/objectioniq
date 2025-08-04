@@ -45,6 +45,8 @@ export default function RealtimeVoiceTraining({ persona, onEndCall }: RealtimeVo
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const conversationHistory = useRef<any[]>([]);
+  const processAudioInputRef = useRef<((audioBlob: Blob) => Promise<void>) | null>(null);
+  const updateAudioLevelRef = useRef<(() => void) | null>(null);
 
   // Generate unique session ID
   useEffect(() => {
@@ -94,13 +96,15 @@ export default function RealtimeVoiceTraining({ persona, onEndCall }: RealtimeVo
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         audioChunksRef.current = [];
         
-        if (audioBlob.size > 0) {
-          await processAudioInput(audioBlob);
+        if (audioBlob.size > 0 && processAudioInputRef.current) {
+          await processAudioInputRef.current(audioBlob);
         }
       };
 
       // Start audio level monitoring
-      updateAudioLevel();
+      if (updateAudioLevelRef.current) {
+        updateAudioLevelRef.current();
+      }
 
       console.log('✅ Audio initialized successfully');
       return true;
@@ -126,7 +130,7 @@ export default function RealtimeVoiceTraining({ persona, onEndCall }: RealtimeVo
   }, [isListening, setAudioLevel]);
 
   // Process audio input (placeholder - would need speech-to-text)
-  const processAudioInput = async (audioBlob: Blob) => {
+  const processAudioInput = useCallback(async (audioBlob: Blob) => {
     try {
       setIsListening(false);
       setIsSpeaking(true);
@@ -157,7 +161,15 @@ export default function RealtimeVoiceTraining({ persona, onEndCall }: RealtimeVo
       setIsSpeaking(false);
       setIsListening(true);
     }
-  };
+  }, [sendTextMessage]);
+
+  // Assign functions to refs
+  useEffect(() => {
+    processAudioInputRef.current = processAudioInput;
+    updateAudioLevelRef.current = updateAudioLevel;
+  }, [processAudioInput, updateAudioLevel]);
+
+
 
   // Send text message using streaming API
   const sendTextMessage = async (text: string) => {

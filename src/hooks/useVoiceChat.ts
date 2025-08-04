@@ -36,6 +36,7 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
   const audioChunksRef = useRef<Blob[]>([]);
   const conversationHistoryRef = useRef<any[]>([]);
   const animationFrameRef = useRef<number | null>(null);
+  const processUserSpeechRef = useRef<((audioBlob: Blob) => Promise<void>) | null>(null);
 
   // Initialize audio context and microphone
   const initializeAudio = useCallback(async () => {
@@ -75,8 +76,8 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         audioChunksRef.current = [];
         
-        if (audioBlob.size > 0) {
-          await processUserSpeech(audioBlob);
+        if (audioBlob.size > 0 && processUserSpeechRef.current) {
+          await processUserSpeechRef.current(audioBlob);
         }
       };
 
@@ -90,21 +91,8 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
     }
   }, [onError]);
 
-  // Monitor audio levels
-  const updateAudioLevel = useCallback(() => {
-    if (analyserRef.current && isListening) {
-      const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-      analyserRef.current.getByteFrequencyData(dataArray);
-      
-      const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
-      setAudioLevel(average / 255);
-      
-      animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
-    }
-  }, [isListening]);
-
   // Process user speech through the full pipeline
-  const processUserSpeech = async (audioBlob: Blob) => {
+  const processUserSpeech = useCallback(async (audioBlob: Blob) => {
     try {
       setIsProcessing(true);
       setIsListening(false);
@@ -150,7 +138,27 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
       setIsProcessing(false);
       setIsListening(true);
     }
-  };
+  }, [onError, getAIResponse]);
+
+  // Assign processUserSpeech to ref
+  useEffect(() => {
+    processUserSpeechRef.current = processUserSpeech;
+  }, [processUserSpeech]);
+
+  // Monitor audio levels
+  const updateAudioLevel = useCallback(() => {
+    if (analyserRef.current && isListening) {
+      const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+      analyserRef.current.getByteFrequencyData(dataArray);
+      
+      const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+      setAudioLevel(average / 255);
+      
+      animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
+    }
+  }, [isListening]);
+
+
 
   // Get AI response with streaming
   const getAIResponse = async (userMessage: string) => {
