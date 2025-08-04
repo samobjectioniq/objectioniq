@@ -172,7 +172,7 @@ export default function RealtimeVoiceTraining({ persona, onEndCall }: RealtimeVo
 
 
   // Send text message using streaming API
-  const sendTextMessage = async (text: string) => {
+  const sendTextMessage = useCallback(async (text: string) => {
     try {
       console.log('🎙️ Sending text message:', text);
       setCurrentResponse('');
@@ -252,7 +252,7 @@ export default function RealtimeVoiceTraining({ persona, onEndCall }: RealtimeVo
       console.error('❌ Send text error:', error);
       setError(`Failed to send message: ${error.message}`);
     }
-  };
+  }, [setError]);
 
   // Start realtime session
   const startCall = async () => {

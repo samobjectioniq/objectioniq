@@ -254,7 +254,7 @@ export default function VoiceAvatar({ persona, onEndCall }: VoiceAvatarProps) {
           <h3 className="text-white font-semibold mb-2">Voice Training Instructions</h3>
           <div className="text-sm text-gray-300 space-y-1">
             <p>• Click the green phone button to start the call</p>
-            <p>• Speak naturally when you see "Listening to you..."</p>
+            <p>• Speak naturally when you see &quot;Listening to you...&quot;</p>
             <p>• {persona.name} will respond with realistic objections</p>
             <p>• Practice overcoming common sales objections</p>
             <p>• Try phrases like &quot;Why is your rate so high?&quot; or &quot;I already have coverage&quot;</p>

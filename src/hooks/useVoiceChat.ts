@@ -161,7 +161,7 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
 
 
   // Get AI response with streaming
-  const getAIResponse = async (userMessage: string) => {
+  const getAIResponse = useCallback(async (userMessage: string) => {
     try {
       console.log('🧠 Getting AI response...');
       setCurrentResponse('');
@@ -261,7 +261,7 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
       console.error('❌ Get AI response error:', error);
       onError(`Failed to get AI response: ${error.message}`);
     }
-  };
+  }, [persona, onError]);
 
   // Process sentence queue for TTS
   const processSentenceQueue = async (queue: string[]) => {
