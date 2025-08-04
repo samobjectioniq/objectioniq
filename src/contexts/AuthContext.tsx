@@ -52,12 +52,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const timeoutId = setTimeout(() => {
       console.warn('Auth loading timeout - forcing loading to false');
       setLoading(false);
-    }, 5000); // 5 second timeout
+    }, 3000); // 3 second timeout - reduced for faster response
 
     // Get initial session
     const getInitialSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Supabase auth error:', error);
+          setLoading(false);
+          clearTimeout(timeoutId);
+          return;
+        }
+        
         setSession(session);
         setUser(session?.user ?? null);
         
