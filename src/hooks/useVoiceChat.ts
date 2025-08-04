@@ -37,6 +37,7 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
   const conversationHistoryRef = useRef<any[]>([]);
   const animationFrameRef = useRef<number | null>(null);
   const processUserSpeechRef = useRef<((audioBlob: Blob) => Promise<void>) | null>(null);
+  const processSentenceQueueRef = useRef<((queue: string[]) => Promise<void>) | null>(null);
 
   // Get AI response with streaming
   const getAIResponse = useCallback(async (userMessage: string) => {
@@ -99,8 +100,8 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
                   currentSentence = sentences.slice(1).join(' ');
                   
                   // Process sentence queue
-                  if (!isProcessingSentence) {
-                    processSentenceQueue(sentenceQueue);
+                  if (!isProcessingSentence && processSentenceQueueRef.current) {
+                    processSentenceQueueRef.current(sentenceQueue);
                   }
                 }
               }
@@ -114,8 +115,8 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
       // Process any remaining text
       if (currentSentence.trim()) {
         sentenceQueue.push(currentSentence.trim());
-        if (!isProcessingSentence) {
-          processSentenceQueue(sentenceQueue);
+        if (!isProcessingSentence && processSentenceQueueRef.current) {
+          processSentenceQueueRef.current(sentenceQueue);
         }
       }
 
@@ -141,131 +142,7 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
       console.error('❌ Get AI response error:', error);
       onError(`Failed to get AI response: ${error.message}`);
     }
-  }, [persona, onError, processSentenceQueue]);
-
-  // Initialize audio context and microphone
-  const initializeAudio = useCallback(async () => {
-    try {
-      console.log('🎙️ Initializing audio...');
-      
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 24000,
-        } 
-      });
-
-      audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-      const audioContext = audioContextRef.current;
-
-      analyserRef.current = audioContext.createAnalyser();
-      analyserRef.current.fftSize = 256;
-      analyserRef.current.smoothingTimeConstant = 0.8;
-
-      microphoneRef.current = audioContext.createMediaStreamSource(stream);
-      microphoneRef.current.connect(analyserRef.current);
-
-      mediaRecorderRef.current = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        audioChunksRef.current = [];
-        
-        if (audioBlob.size > 0 && processUserSpeechRef.current) {
-          await processUserSpeechRef.current(audioBlob);
-        }
-      };
-
-      console.log('✅ Audio initialized successfully');
-      return true;
-
-    } catch (error: any) {
-      console.error('❌ Audio initialization error:', error);
-      onError(`Microphone access failed: ${error.message}`);
-      return false;
-    }
-  }, [onError]);
-
-  // Process user speech through the full pipeline
-  const processUserSpeech = useCallback(async (audioBlob: Blob) => {
-    try {
-      setIsProcessing(true);
-      setIsListening(false);
-      
-      console.log('🎤 Processing user speech...');
-
-      // Step 1: Speech to Text (Whisper)
-      const response = await fetch('/api/voice/speech-to-text', {
-        method: 'POST',
-        body: audioBlob,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to transcribe speech');
-      }
-
-      const { transcript } = await response.json();
-      
-      if (!transcript || transcript.trim().length === 0) {
-        console.log('No speech detected');
-        setIsProcessing(false);
-        setIsListening(true);
-        return;
-      }
-
-      // Add user message to conversation
-      const userMessage: ConversationMessage = {
-        id: Date.now().toString(),
-        speaker: 'user',
-        text: transcript,
-        timestamp: new Date(),
-      };
-      
-      setConversation(prev => [...prev, userMessage]);
-
-      // Step 2: Get AI response (GPT-4o streaming)
-      await getAIResponse(transcript);
-
-    } catch (error: any) {
-      console.error('❌ Process user speech error:', error);
-      onError(`Failed to process speech: ${error.message}`);
-    } finally {
-      setIsProcessing(false);
-      setIsListening(true);
-    }
-  }, [onError, getAIResponse]);
-
-  // Assign processUserSpeech to ref
-  useEffect(() => {
-    processUserSpeechRef.current = processUserSpeech;
-  }, [processUserSpeech]);
-
-  // Monitor audio levels
-  const updateAudioLevel = useCallback(() => {
-    if (analyserRef.current && isListening) {
-      const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-      analyserRef.current.getByteFrequencyData(dataArray);
-      
-      const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
-      setAudioLevel(average / 255);
-      
-      animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
-    }
-  }, [isListening]);
-
-
-
-
+  }, [persona, onError]);
 
   // Process sentence queue for TTS
   const processSentenceQueue = useCallback(async (queue: string[]) => {
@@ -320,6 +197,132 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
       }
     }
   }, [persona.voiceId]);
+
+  // Process user speech through the full pipeline
+  const processUserSpeech = useCallback(async (audioBlob: Blob) => {
+    try {
+      setIsProcessing(true);
+      setIsListening(false);
+      
+      console.log('🎤 Processing user speech...');
+
+      // Step 1: Speech to Text (Whisper)
+      const response = await fetch('/api/voice/speech-to-text', {
+        method: 'POST',
+        body: audioBlob,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to transcribe speech');
+      }
+
+      const { transcript } = await response.json();
+      
+      if (!transcript || transcript.trim().length === 0) {
+        console.log('No speech detected');
+        setIsProcessing(false);
+        setIsListening(true);
+        return;
+      }
+
+      // Add user message to conversation
+      const userMessage: ConversationMessage = {
+        id: Date.now().toString(),
+        speaker: 'user',
+        text: transcript,
+        timestamp: new Date(),
+      };
+      
+      setConversation(prev => [...prev, userMessage]);
+
+      // Step 2: Get AI response (GPT-4o streaming)
+      await getAIResponse(transcript);
+
+    } catch (error: any) {
+      console.error('❌ Process user speech error:', error);
+      onError(`Failed to process speech: ${error.message}`);
+    } finally {
+      setIsProcessing(false);
+      setIsListening(true);
+    }
+  }, [onError, getAIResponse]);
+
+  // Assign functions to refs
+  useEffect(() => {
+    processUserSpeechRef.current = processUserSpeech;
+    processSentenceQueueRef.current = processSentenceQueue;
+  }, [processUserSpeech, processSentenceQueue]);
+
+  // Initialize audio context and microphone
+  const initializeAudio = useCallback(async () => {
+    try {
+      console.log('🎙️ Initializing audio...');
+      
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 24000,
+        } 
+      });
+
+      audioContextRef.current = new AudioContext({ sampleRate: 24000 });
+      const audioContext = audioContextRef.current;
+
+      analyserRef.current = audioContext.createAnalyser();
+      analyserRef.current.fftSize = 256;
+      analyserRef.current.smoothingTimeConstant = 0.8;
+
+      microphoneRef.current = audioContext.createMediaStreamSource(stream);
+      microphoneRef.current.connect(analyserRef.current);
+
+      mediaRecorderRef.current = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        audioChunksRef.current = [];
+        
+        if (audioBlob.size > 0 && processUserSpeechRef.current) {
+          await processUserSpeechRef.current(audioBlob);
+        }
+      };
+
+      console.log('✅ Audio initialized successfully');
+      return true;
+
+    } catch (error: any) {
+      console.error('❌ Audio initialization error:', error);
+      onError(`Microphone access failed: ${error.message}`);
+      return false;
+    }
+  }, [onError]);
+
+  // Assign processUserSpeech to ref
+  useEffect(() => {
+    processUserSpeechRef.current = processUserSpeech;
+  }, [processUserSpeech]);
+
+  // Monitor audio levels
+  const updateAudioLevel = useCallback(() => {
+    if (analyserRef.current && isListening) {
+      const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+      analyserRef.current.getByteFrequencyData(dataArray);
+      
+      const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+      setAudioLevel(average / 255);
+      
+      animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
+    }
+  }, [isListening]);
 
   // Start listening
   const startListening = useCallback(async () => {
