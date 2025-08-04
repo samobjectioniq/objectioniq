@@ -48,17 +48,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.warn('Auth loading timeout - forcing loading to false');
+      setLoading(false);
+    }, 5000); // 5 second timeout
+
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        await fetchProfile(session.user.id);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        }
+        
+        setLoading(false);
+        clearTimeout(timeoutId);
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+        setLoading(false);
+        clearTimeout(timeoutId);
       }
-      
-      setLoading(false);
     };
 
     const fetchProfile = async (userId: string) => {
@@ -85,16 +98,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
+        try {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            await fetchProfile(session.user.id);
+          } else {
+            setProfile(null);
+          }
+          
+          setLoading(false);
+          clearTimeout(timeoutId);
+        } catch (error) {
+          console.error('Error in auth state change:', error);
+          setLoading(false);
+          clearTimeout(timeoutId);
         }
-        
-        setLoading(false);
       }
     );
 
