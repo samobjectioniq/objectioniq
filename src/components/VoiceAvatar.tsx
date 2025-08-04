@@ -44,8 +44,15 @@ export default function VoiceAvatar({ persona, onEndCall }: VoiceAvatarProps) {
   // Start call
   const startCall = async () => {
     try {
+      console.log('🚀 Starting call...');
       setIsCallActive(true);
       setError(null);
+      
+      // Check if microphone is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Microphone not supported in this browser');
+      }
+      
       await startListening();
       
       // Start call timer
@@ -58,7 +65,7 @@ export default function VoiceAvatar({ persona, onEndCall }: VoiceAvatarProps) {
       
     } catch (error: any) {
       console.error('❌ Start call error:', error);
-      setError(`Failed to start call: ${error.message}`);
+      setError(`Failed to start call: ${error.message}. Please check microphone permissions and try again.`);
     }
   };
 
@@ -144,7 +151,19 @@ export default function VoiceAvatar({ persona, onEndCall }: VoiceAvatarProps) {
             <div className="text-blue-400 text-lg">{persona.name} is speaking...</div>
           )}
           {error && (
-            <div className="text-red-400 text-lg">{error}</div>
+            <div className="bg-red-900 p-4 rounded-lg max-w-2xl">
+              <div className="text-red-400 text-lg mb-2">❌ {error}</div>
+              <button
+                onClick={() => {
+                  setError(null);
+                  setIsCallActive(false);
+                  setCallDuration(0);
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
           )}
         </div>
 
