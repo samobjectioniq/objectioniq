@@ -19,10 +19,10 @@
     "setup": "node scripts/setup-env.js",
     "troubleshoot": "node scripts/troubleshoot.js",
     "test:api": "node scripts/test-api.js",
-    "test:claude": "node scripts/test-claude-api.js"
+    "test:openai": "node scripts/test-openai-api.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.56.0",
+
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.50.5",
@@ -33,9 +33,11 @@
     "framer-motion": "^12.23.3",
     "lucide-react": "^0.525.0",
     "next": "15.3.5",
+    "openai": "^5.11.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "recharts": "^3.1.0",
+    "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

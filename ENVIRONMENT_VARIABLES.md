@@ -2,12 +2,12 @@
 
 ## Required Environment Variables
 
-### Anthropic API Configuration
+### OpenAI API Configuration
 ```bash
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 ```
-- **Description**: Your Anthropic API key for Claude AI integration
-- **How to get**: Sign up at https://console.anthropic.com/
+- **Description**: Your OpenAI API key for GPT-4o Realtime integration
+- **How to get**: Sign up at https://platform.openai.com/
 - **Required**: Yes
 
 ### Supabase Configuration
@@ -58,7 +58,7 @@ NEXT_PUBLIC_ENABLE_ERROR_TRACKING=true
 1. **Go to your Vercel project dashboard**
 2. **Navigate to Settings > Environment Variables**
 3. **Add each required variable**:
-   - `ANTHROPIC_API_KEY`
+   - `OPENAI_API_KEY`
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
@@ -72,7 +72,7 @@ Create a `.env.local` file in your project root:
 
 ```bash
 # Copy this template and fill in your values
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key

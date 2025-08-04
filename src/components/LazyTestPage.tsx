@@ -3,7 +3,7 @@
 import { Suspense, lazy } from 'react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
-const TestPage = lazy(() => import('@/app/test/page'));
+const TestPage = lazy(() => import('@/app/test-websocket/page'));
 
 export default function LazyTestPage() {
   return (

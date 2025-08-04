@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -7,7 +6,7 @@ interface HealthStatus {
   version: string;
   environment: string;
   services: {
-    claude: {
+    openai: {
       status: 'healthy' | 'unhealthy';
       responseTime?: number;
       error?: string;
@@ -25,49 +24,47 @@ interface HealthStatus {
   };
 }
 
-// Test Claude API connectivity
-async function testClaudeAPI(): Promise<{ status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string }> {
+// Test OpenAI API connectivity
+async function testOpenAIAPI(): Promise<{ status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string }> {
   const startTime = Date.now();
   
   try {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
       return {
         status: 'unhealthy',
-        error: 'ANTHROPIC_API_KEY not configured'
+        error: 'OPENAI_API_KEY not configured'
       };
     }
     
-    const anthropic = new Anthropic({
-      apiKey,
-      timeout: 10000, // 10 second timeout for health check
+    // Test OpenAI API with a simple request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    const response = await fetch('https://api.openai.com/v1/models', {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal,
     });
     
-    // Make a simple test request
-    const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 10,
-      temperature: 0,
-      messages: [
-        {
-          role: 'user',
-          content: 'Say "OK"',
-        },
-      ],
-    });
+    clearTimeout(timeoutId);
     
     const responseTime = Date.now() - startTime;
     
-    if (response.content[0].type === 'text' && response.content[0].text.trim()) {
+    if (response.ok) {
       return {
         status: 'healthy',
         responseTime
       };
     } else {
+      const errorText = await response.text();
       return {
         status: 'unhealthy',
-        error: 'Empty response from Claude API'
+        responseTime,
+        error: `OpenAI API error: ${response.status} - ${errorText}`
       };
     }
   } catch (error: any) {
@@ -99,45 +96,39 @@ async function testSupabase(): Promise<{ status: 'healthy' | 'unhealthy'; error?
       headers: {
         'apikey': supabaseKey,
         'Authorization': `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
     
     if (response.ok) {
-      return { status: 'healthy' };
+      return {
+        status: 'healthy'
+      };
     } else {
       return {
         status: 'unhealthy',
-        error: `HTTP ${response.status}: ${response.statusText}`
+        error: `Supabase error: ${response.status}`
       };
     }
   } catch (error: any) {
     return {
       status: 'unhealthy',
-      error: error.message || 'Connection failed'
+      error: error.message || 'Unknown error'
     };
   }
 }
 
 // Get memory usage
 function getMemoryUsage() {
-  if (typeof process !== 'undefined' && process.memoryUsage) {
-    const memUsage = process.memoryUsage();
-    const used = Math.round(memUsage.heapUsed / 1024 / 1024);
-    const total = Math.round(memUsage.heapTotal / 1024 / 1024);
-    const percentage = Math.round((used / total) * 100);
-    
-    return {
-      used,
-      total,
-      percentage
-    };
-  }
+  const memUsage = process.memoryUsage();
+  const total = memUsage.heapTotal;
+  const used = memUsage.heapUsed;
+  const percentage = Math.round((used / total) * 100);
   
   return {
-    used: 0,
-    total: 0,
-    percentage: 0
+    used: Math.round(used / 1024 / 1024), // MB
+    total: Math.round(total / 1024 / 1024), // MB
+    percentage
   };
 }
 
@@ -145,17 +136,18 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
   
   try {
-    // Test all services in parallel
-    const [claudeStatus, supabaseStatus] = await Promise.all([
-      testClaudeAPI(),
-      testSupabase()
+    // Run health checks in parallel
+    const [openaiStatus, supabaseStatus] = await Promise.all([
+      testOpenAIAPI(),
+      testSupabase(),
     ]);
     
     // Determine overall health
-    const allHealthy = claudeStatus.status === 'healthy' && supabaseStatus.status === 'healthy';
-    const anyUnhealthy = claudeStatus.status === 'unhealthy' || supabaseStatus.status === 'unhealthy';
+    const allHealthy = openaiStatus.status === 'healthy' && supabaseStatus.status === 'healthy';
+    const anyUnhealthy = openaiStatus.status === 'unhealthy' || supabaseStatus.status === 'unhealthy';
     
     let overallStatus: 'healthy' | 'degraded' | 'unhealthy';
+    
     if (allHealthy) {
       overallStatus = 'healthy';
     } else if (anyUnhealthy) {
@@ -164,78 +156,58 @@ export async function GET(request: NextRequest) {
       overallStatus = 'degraded';
     }
     
+    // Build response
     const healthStatus: HealthStatus = {
       status: overallStatus,
       timestamp: new Date().toISOString(),
       version: '1.0.0',
       environment: process.env.NODE_ENV || 'development',
       services: {
-        claude: claudeStatus,
-        supabase: supabaseStatus
+        openai: openaiStatus,
+        supabase: supabaseStatus,
       },
       uptime: process.uptime(),
-      memory: getMemoryUsage()
+      memory: getMemoryUsage(),
     };
     
-    const responseTime = Date.now() - startTime;
-    
-    // Add response headers
-    const headers = {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'X-Response-Time': `${responseTime}ms`,
-      'X-Health-Status': overallStatus
-    };
-    
-    // Return appropriate status code based on health
+    // Set appropriate status code
     const statusCode = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 200 : 503;
     
-    return NextResponse.json(healthStatus, {
-      status: statusCode,
-      headers
-    });
+    return NextResponse.json(healthStatus, { status: statusCode });
     
   } catch (error: any) {
     console.error('Health check error:', error);
     
-    const errorStatus: HealthStatus = {
+    const errorResponse: HealthStatus = {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
       version: '1.0.0',
       environment: process.env.NODE_ENV || 'development',
       services: {
-        claude: {
+        openai: {
           status: 'unhealthy',
           error: 'Health check failed'
         },
         supabase: {
           status: 'unhealthy',
           error: 'Health check failed'
-        }
+        },
       },
       uptime: process.uptime(),
-      memory: getMemoryUsage()
+      memory: getMemoryUsage(),
     };
     
-    return NextResponse.json(errorStatus, {
-      status: 503,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
-      }
-    });
+    return NextResponse.json(errorResponse, { status: 503 });
   }
 }
 
-// Handle OPTIONS requests for CORS
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Max-Age': '86400',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   });
 } 

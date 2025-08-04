@@ -16,7 +16,7 @@ if (!fs.existsSync(envPath)) {
 // Check environment variables
 const envContent = fs.readFileSync(envPath, 'utf8');
 const requiredVars = [
-  'ANTHROPIC_API_KEY',
+  'OPENAI_API_KEY',
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_ANON_KEY'
 ];

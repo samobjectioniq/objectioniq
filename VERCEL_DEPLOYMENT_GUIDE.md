@@ -26,7 +26,7 @@ vercel login
 
 ### Required Environment Variables
 ```bash
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
@@ -112,7 +112,7 @@ vercel --prod
 
 2. **Add Required Variables**
    ```
-   ANTHROPIC_API_KEY=your_anthropic_api_key_here
+   OPENAI_API_KEY=your_openai_api_key_here
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
@@ -168,7 +168,7 @@ npm run build
 #### Environment Variable Issues
 ```bash
 # Verify environment variables are set
-echo $ANTHROPIC_API_KEY
+echo $OPENAI_API_KEY
 echo $NEXT_PUBLIC_SUPABASE_URL
 echo $NEXT_PUBLIC_SUPABASE_ANON_KEY
 ```

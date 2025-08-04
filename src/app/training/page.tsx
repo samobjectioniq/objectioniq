@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import VoiceTraining from '@/components/VoiceTraining';
+import RealtimeVoiceTraining from '@/components/RealtimeVoiceTraining';
 import { Persona } from '@/types/persona';
 
 const personas: Persona[] = [
@@ -80,7 +80,7 @@ function TrainingContent() {
   // Show voice training interface for all personas
   if (showVoiceTraining) {
     return (
-      <VoiceTraining
+      <RealtimeVoiceTraining
         persona={selectedPersona}
         onEndCall={handleEndCall}
       />

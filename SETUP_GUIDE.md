@@ -5,8 +5,8 @@
 Create a `.env.local` file in the root directory with the following variables:
 
 ```bash
-# Anthropic API Key - Get from https://console.anthropic.com/
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
+# OpenAI API Key - Get from https://platform.openai.com/api-keys
+OPENAI_API_KEY=your_openai_api_key_here
 
 # Supabase Configuration - Get from your Supabase project settings
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -23,12 +23,12 @@ NEXT_PUBLIC_GA_ID=your_google_analytics_id_here
 
 ## Getting API Keys
 
-### 1. Anthropic API Key
-1. Go to https://console.anthropic.com/
+### 1. OpenAI API Key
+1. Go to https://platform.openai.com/api-keys
 2. Sign up or log in
 3. Navigate to API Keys
 4. Create a new API key
-5. Copy the key to `ANTHROPIC_API_KEY`
+5. Copy the key to `OPENAI_API_KEY`
 
 ### 2. Supabase Setup
 1. Go to https://supabase.com/
@@ -46,12 +46,12 @@ NEXT_PUBLIC_GA_ID=your_google_analytics_id_here
    - Make sure you have created `.env.local` with Supabase credentials
    - Restart the development server after adding environment variables
 
-2. **"invalid x-api-key" error**
-   - Check that your Anthropic API key is correct
+2. **"invalid api key" error**
+   - Check that your OpenAI API key is correct
    - Ensure the key has proper permissions
 
 3. **"model not found" error**
-   - The app now uses `claude-3-5-sonnet-20241022` (updated from deprecated model)
+   - The app now uses `gpt-4o-realtime-preview` for real-time voice conversations
    - This should be resolved automatically
 
 4. **Port already in use**

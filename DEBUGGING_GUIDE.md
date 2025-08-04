@@ -246,15 +246,15 @@ npm run lint
 
 ###  **Remaining Issues & Solutions:**
 
-#### 1. **Claude API Test (FAILED)**
-**Problem:** Missing `ANTHROPIC_API_KEY` environment variable
+#### 1. **OpenAI API Test (FAILED)**
+**Problem:** Missing `OPENAI_API_KEY` environment variable
 **Solution:** Add to Vercel environment variables:
 ```
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 #### 2. **Persona Differentiation (FAILED)**
-**Problem:** Depends on Claude API working
+**Problem:** Depends on OpenAI API working
 **Solution:** Will pass once API key is added
 
 #### 3. **Error Handling (FAILED)**
@@ -275,7 +275,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 1. **Go to Vercel Dashboard** → Your project → Settings → Environment Variables
 2. **Add these variables:**
    ```
-   ANTHROPIC_API_KEY=your_anthropic_api_key
+   OPENAI_API_KEY=your_openai_api_key
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key

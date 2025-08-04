@@ -1,11 +1,11 @@
 {
   "timestamp": "2025-07-27T23:42:54.701Z",
   "environment": "development",
-  "hasAnthropicKey": false,
+  "hasOpenAIKey": false,
   "hasSupabaseConfig": false,
   "issues": [
     "Supabase URL not configured - authentication will not work",
-    "Anthropic API key not configured - AI features will not work",
+    "OpenAI API key not configured - AI features will not work",
     "Development dependencies found in production: @eslint/eslintrc, @types/node, @types/react, @types/react-dom, eslint, eslint-config-next"
   ],
   "bundleSize": []

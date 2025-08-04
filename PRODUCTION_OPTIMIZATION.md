@@ -107,7 +107,7 @@
 ### 1. Environment Variables
 ```bash
 # Required for production
-ANTHROPIC_API_KEY=your_api_key_here
+OPENAI_API_KEY=your_api_key_here
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```

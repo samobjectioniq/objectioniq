@@ -16,19 +16,19 @@ if (!fs.existsSync(envPath)) {
 // Read current env file
 let envContent = fs.readFileSync(envPath, 'utf8');
 
-// Update Anthropic API key
-const newApiKey = process.env.ANTHROPIC_API_KEY || 'your-api-key-here';
+// Update OpenAI API key
+const newApiKey = process.env.OPENAI_API_KEY || 'your-api-key-here';
 
 // Replace the API key
-if (envContent.includes('ANTHROPIC_API_KEY=')) {
+if (envContent.includes('OPENAI_API_KEY=')) {
   envContent = envContent.replace(
-    /ANTHROPIC_API_KEY=.*/,
-    `ANTHROPIC_API_KEY=${newApiKey}`
+    /OPENAI_API_KEY=.*/,
+    `OPENAI_API_KEY=${newApiKey}`
   );
-  console.log('✅ Updated ANTHROPIC_API_KEY');
+  console.log('✅ Updated OPENAI_API_KEY');
 } else {
-  envContent += `\nANTHROPIC_API_KEY=${newApiKey}`;
-  console.log('✅ Added ANTHROPIC_API_KEY');
+  envContent += `\nOPENAI_API_KEY=${newApiKey}`;
+  console.log('✅ Added OPENAI_API_KEY');
 }
 
 // Write back to file
@@ -38,4 +38,4 @@ console.log('\n✨ Environment updated successfully!');
 console.log('📝 Next steps:');
 console.log('1. Restart your development server: npm run dev');
 console.log('2. Test the API: npm run test:api');
-console.log('3. Test Claude specifically: node scripts/test-claude.js'); 
+console.log('3. Test OpenAI specifically: node scripts/test-openai-api.js'); 

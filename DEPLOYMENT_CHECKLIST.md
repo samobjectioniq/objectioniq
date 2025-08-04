@@ -3,9 +3,9 @@
 ## 🚀 Pre-Deployment Checklist
 
 ### 1. Environment Variables Setup
-- [ ] **Anthropic API Key**
-  - [ ] Get API key from https://console.anthropic.com/
-  - [ ] Add `ANTHROPIC_API_KEY` to Vercel environment variables
+- [ ] **OpenAI API Key**
+- [ ] Get API key from https://platform.openai.com/api-keys
+- [ ] Add `OPENAI_API_KEY` to Vercel environment variables
   - [ ] Test API key locally
 
 - [ ] **Supabase Configuration**
@@ -33,7 +33,7 @@
 ### 3. Local Testing
 - [ ] **Functionality**
   - [ ] Test voice recognition
-  - [ ] Test Claude API responses
+  - [ ] Test OpenAI API responses
   - [ ] Test Supabase authentication
   - [ ] Test session management
   - [ ] Test mobile responsiveness
@@ -68,7 +68,7 @@
 
 - [ ] **Add Required Variables**
   ```
-  ANTHROPIC_API_KEY=your_api_key_here
+  OPENAI_API_KEY=your_api_key_here
   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key

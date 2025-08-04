@@ -3,8 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const envTemplate = `# Anthropic API Key - Get from https://console.anthropic.com/
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
+const envTemplate = `# OpenAI API Key - Get from https://platform.openai.com/api-keys
+OPENAI_API_KEY=your_openai_api_key_here
 
 # Supabase Configuration - Get from your Supabase project settings
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -31,7 +31,7 @@ if (fs.existsSync(envPath)) {
     fs.writeFileSync(envPath, envTemplate);
     console.log('✅ Created .env.local file');
     console.log('📝 Please edit .env.local and add your actual API keys:');
-    console.log('   - ANTHROPIC_API_KEY from https://console.anthropic.com/');
+    console.log('   - OPENAI_API_KEY from https://platform.openai.com/api-keys');
     console.log('   - Supabase credentials from your Supabase project\n');
     console.log('🔗 For detailed instructions, see SETUP_GUIDE.md\n');
   } catch (error) {

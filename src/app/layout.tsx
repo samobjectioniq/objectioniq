@@ -93,8 +93,7 @@ export default function RootLayout({
         {/* Preload critical resources */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://api.anthropic.com" />
-        <link rel="dns-prefetch" href="https://api.elevenlabs.io" />
+        <link rel="dns-prefetch" href="https://api.openai.com" />
         <link rel="dns-prefetch" href="https://supabase.co" />
         
         {/* Preload critical CSS */}

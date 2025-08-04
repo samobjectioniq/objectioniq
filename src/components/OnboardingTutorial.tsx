@@ -40,7 +40,7 @@ const onboardingSteps: OnboardingStep[] = [
   {
     id: 'ai-responses',
     title: 'AI-Powered Responses',
-    description: 'Our Claude AI generates realistic objections and responses based on each customer\'s personality.',
+    description: 'Our GPT-4o Realtime AI generates realistic objections and responses based on each customer\'s personality.',
     icon: <Brain className="w-8 h-8 text-blue-600" />,
     position: 'center'
   },

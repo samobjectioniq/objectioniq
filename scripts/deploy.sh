@@ -46,7 +46,7 @@ fi
 print_status "Running pre-deployment checks..."
 
 # Check for required environment variables
-REQUIRED_VARS=("ANTHROPIC_API_KEY" "NEXT_PUBLIC_SUPABASE_URL" "NEXT_PUBLIC_SUPABASE_ANON_KEY")
+REQUIRED_VARS=("OPENAI_API_KEY" "NEXT_PUBLIC_SUPABASE_URL" "NEXT_PUBLIC_SUPABASE_ANON_KEY")
 MISSING_VARS=()
 
 for var in "${REQUIRED_VARS[@]}"; do
