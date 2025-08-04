@@ -147,8 +147,10 @@ export async function streamTextToSpeech(
       audioChunks.push(value);
       
       // Send chunk as it arrives
+      const audioBuffer = new ArrayBuffer(value.buffer.byteLength);
+      new Uint8Array(audioBuffer).set(value);
       onChunk({
-        audio: value.buffer.slice(0),
+        audio: audioBuffer,
         text: text,
         isComplete: false,
       });
@@ -162,8 +164,10 @@ export async function streamTextToSpeech(
       offset += chunk.length;
     }
 
+    const finalAudioBuffer = new ArrayBuffer(completeAudio.buffer.byteLength);
+    new Uint8Array(finalAudioBuffer).set(completeAudio);
     onChunk({
-      audio: completeAudio.buffer.slice(0),
+      audio: finalAudioBuffer,
       text: text,
       isComplete: true,
     });
