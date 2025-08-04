@@ -261,10 +261,10 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
       console.error('❌ Get AI response error:', error);
       onError(`Failed to get AI response: ${error.message}`);
     }
-  }, [persona, onError]);
+  }, [persona, onError, processSentenceQueue]);
 
   // Process sentence queue for TTS
-  const processSentenceQueue = async (queue: string[]) => {
+  const processSentenceQueue = useCallback(async (queue: string[]) => {
     if (queue.length === 0) return;
     
     const sentence = queue.shift()!;
@@ -315,7 +315,7 @@ export default function useVoiceChat({ persona, onError }: UseVoiceChatProps) {
         processSentenceQueue(queue);
       }
     }
-  };
+  }, [persona.voiceId]);
 
   // Start listening
   const startListening = useCallback(async () => {

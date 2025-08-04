@@ -12,8 +12,8 @@ interface VoiceAvatarProps {
     type: string;
     characteristics: string[];
     description: string;
-    voiceId: string;
-    systemPrompt: string;
+    voiceId?: string;
+    systemPrompt?: string;
   };
   onEndCall: () => void;
 }
@@ -35,8 +35,8 @@ export default function VoiceAvatar({ persona, onEndCall }: VoiceAvatarProps) {
   } = useVoiceChat({
     persona: {
       name: persona.name,
-      voiceId: persona.voiceId,
-      systemPrompt: persona.systemPrompt,
+      voiceId: persona.voiceId || '21m00Tcm4TlvDq8ikWAM', // Default to Sarah's voice
+      systemPrompt: persona.systemPrompt || `You are ${persona.name}, a customer who recently requested insurance quotes online. You are receiving a phone call from an insurance agent about those quotes. Answer naturally and give realistic objections.`,
     },
     onError: setError,
   });
